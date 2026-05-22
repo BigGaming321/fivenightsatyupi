@@ -1,0 +1,6 @@
+[configuration]
+entry_symbol = "game_manager_init"
+compatibility_minimum = "4.1"
+
+[libraries]
+windows.debug.x86_64 = "res://extensions/game_manager/bin/game_manager.dll"

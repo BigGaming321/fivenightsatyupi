@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://btgvx7mo38ahh"]
+
+[ext_resource type="Texture2D" uid="uid://dhrrnw5vphe2x" path="res://scenes/main.jpg" id="1_0wfyh"]
+[ext_resource type="Texture2D" uid="uid://dyoh6tf750svi" path="res://assets/cams/canteen.png" id="2_jyhfs"]
+[ext_resource type="Texture2D" uid="uid://clqn3e1rl0q2y" path="res://assets/doors/door_left_closed.png" id="4_tbgi4"]
+[ext_resource type="Texture2D" uid="uid://ca0yjsgk1ca78" path="res://assets/doors/door_right_closed.png" id="5_tefeu"]
+
+[node name="Main" type="Node2D" unique_id=299251246]
+visible = false
+
+[node name="GameManager" type="GameManager" parent="." unique_id=601935917]
+
+[node name="PowerManager" type="PowerManager" parent="." unique_id=883581399]
+
+[node name="CameraManager" type="CameraManager" parent="." unique_id=642375280]
+
+[node name="DoorManager" type="DoorManager" parent="." unique_id=555232842]
+
+[node name="Animatronic" type="Animatronic" parent="." unique_id=1325184672]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=621684776]
+
+[node name="CameraSystem" type="CanvasLayer" parent="." unique_id=966207911]
+
+[node name="MainFeed" type="TextureRect" parent="CameraSystem" unique_id=698517148]
+offset_left = -72.0
+offset_top = -135.0
+offset_right = 1976.0
+offset_bottom = 1425.0
+texture = ExtResource("1_0wfyh")
+
+[node name="CameraFeed" type="TextureRect" parent="CameraSystem" unique_id=1110751121]
+visible = false
+offset_left = -6.0
+offset_top = -28.0
+offset_right = 1914.0
+offset_bottom = 1052.0
+texture = ExtResource("2_jyhfs")
+
+[node name="DoorSystem" type="CanvasLayer" parent="." unique_id=1497066716]
+
+[node name="LeftDoor" type="TextureRect" parent="DoorSystem" unique_id=750921097]
+visible = false
+offset_left = -81.0
+offset_top = -125.0
+offset_right = 370.0
+offset_bottom = 1414.0
+texture = ExtResource("4_tbgi4")
+
+[node name="RightDoor" type="TextureRect" parent="DoorSystem" unique_id=303050774]
+visible = false
+offset_left = 1530.0
+offset_top = -141.0
+offset_right = 1981.0
+offset_bottom = 1451.0
+texture = ExtResource("5_tefeu")
+
+[node name="PowerUI" type="PowerUI" parent="." unique_id=720141294]
