@@ -30,9 +30,9 @@ void GameManager::_ready() {
         UtilityFunctions::printerr("GameManager: DoorManager not found!");
         return;
     }
-    animatronic = root->get_node<Animatronic>("Animatronic");
-    if (!animatronic)
-        UtilityFunctions::printerr("GameManager: Animatronic not found!");
+    animatronic_manager = root->get_node<AnimatronicManager>("AnimatronicManager");
+    if (!animatronic_manager)
+        UtilityFunctions::printerr("GameManager: AnimatronicManager not found!");
 
 }
 
@@ -59,8 +59,8 @@ void GameManager::_process(double delta) {
     if (input->is_action_just_pressed("door_right"))
         door_manager->toggle_right();
 
-    if (input->is_action_just_pressed("troll_sound"))  // add this
-        animatronic->play_troll();
+    if (input->is_action_just_pressed("troll_sound"))
+        if (animatronic_manager) animatronic_manager->play_troll();
 }
 
 void GameManager::_bind_methods() {}

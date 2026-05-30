@@ -16,7 +16,7 @@ visible = false
 
 [node name="DoorManager" type="DoorManager" parent="." unique_id=555232842]
 
-[node name="Animatronic" type="Animatronic" parent="." unique_id=1325184672]
+[node name="AnimatronicManager" type="AnimatronicManager" parent="." unique_id=1913361522]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=621684776]
 

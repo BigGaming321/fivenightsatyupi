@@ -1,5 +1,5 @@
 #include "power_ui.h"
-#include "animatronic.h"
+#include "animatronic.h"  // for AnimatronicManager
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -16,15 +16,15 @@ void PowerUI::_ready() {
     if (!power_manager)
         UtilityFunctions::printerr("PowerUI: PowerManager not found!");
 
-    animatronic = root->get_node<Animatronic>("Animatronic");
-    if (!animatronic)
-        UtilityFunctions::printerr("PowerUI: Animatronic not found!");
+    animatronic_manager = root->get_node<AnimatronicManager>("AnimatronicManager");
+    if (!animatronic_manager)
+        UtilityFunctions::printerr("PowerUI: AnimatronicManager not found!");
 
     // --- Timer label (above power bar) ---
     timer_label = memnew(Label);
     timer_label->set_anchors_preset(Control::PRESET_BOTTOM_LEFT);
     timer_label->set_position(Vector2(20, -120));  // above power bar
-    timer_label->set_text("60s");
+    timer_label->set_text("12:00 AM");
     add_child(timer_label);
 
     // --- Bar background (bigger: 240x28) ---
@@ -75,12 +75,27 @@ void PowerUI::update_bar(float pct) {
 }
 
 void PowerUI::update_timer() {
-    if (!animatronic) return;
+    if (!animatronic_manager) return;
 
-    float remaining = 60.0f - animatronic->get_game_timer();
-    if (remaining < 0.0f) remaining = 0.0f;
+    // 60 real seconds = 6 hours (12:00 AM to 6:00 AM = 360 in-game minutes)
+    // We snap to 10-minute increments, so there are 36 steps total.
+    // Each step = 60s / 36 = ~1.667 real seconds.
+    float elapsed = animatronic_manager->get_game_timer();
+    float clamped = CLAMP(elapsed, 0.0f, 60.0f);
 
-    timer_label->set_text("Time: " + String::num_int64((int)remaining) + "s");
+    // Which 10-minute block are we in?
+    int total_minutes = ((int)(clamped * 6.0f) / 10) * 10; // snap to nearest 10
+    int hour          = 12 + total_minutes / 60;
+    int minute        = total_minutes % 60;
+
+    int display_hour = (hour == 12) ? 12 : hour % 12;
+
+    String h_str = String::num_int64(display_hour);
+    String m_str = (minute < 10)
+        ? ("0" + String::num_int64(minute))
+        : String::num_int64(minute);
+
+    timer_label->set_text(h_str + ":" + m_str + " AM");
 }
 
 void PowerUI::trigger_blackout() {

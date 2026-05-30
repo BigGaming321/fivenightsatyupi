@@ -8,14 +8,14 @@
 
 using namespace godot;
 
-class Animatronic;  // forward declare to avoid circular include
+class AnimatronicManager;  // forward declare
 
 class PowerUI : public CanvasLayer {
     GDCLASS(PowerUI, CanvasLayer);
 
 private:
     PowerManager* power_manager      = nullptr;
-    Animatronic*  animatronic        = nullptr;  // new
+    AnimatronicManager* animatronic_manager  = nullptr;
 
     ColorRect*    bar_bg             = nullptr;
     ColorRect*    bar_fill           = nullptr;

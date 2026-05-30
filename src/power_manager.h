@@ -9,17 +9,16 @@
 #include "door_manager.h"
 #include "animatronic.h"
 
-
 using namespace godot;
 
 class PowerManager : public Node {
     GDCLASS(PowerManager, Node);
 
 private:
-    CameraManager* camera_manager = nullptr;
-    DoorManager* door_manager = nullptr;
-    ColorRect*     light_overlay  = nullptr;  // dark tint over scene when lights off
-    Animatronic* animatronic = nullptr;
+    CameraManager*      camera_manager      = nullptr;
+    DoorManager*        door_manager        = nullptr;
+    AnimatronicManager* animatronic_manager = nullptr;
+    ColorRect*          light_overlay       = nullptr;
 
     float power        = 100.0f;
     float base_drain   = 2.0f;   // % per second, lights on

@@ -20,9 +20,9 @@ void PowerManager::_ready() {
     if (!door_manager)
         UtilityFunctions::printerr("PowerManager: DoorManager not found!");
 
-    animatronic = root->get_node<Animatronic>("Animatronic");
-    if (!animatronic)
-        UtilityFunctions::printerr("PowerManager: Animatronic not found!");
+    animatronic_manager = root->get_node<AnimatronicManager>("AnimatronicManager");
+    if (!animatronic_manager)
+        UtilityFunctions::printerr("PowerManager: AnimatronicManager not found!");
 
     // CanvasLayer so the overlay actually renders on top of everything
     CanvasLayer* canvas = memnew(CanvasLayer);
@@ -93,8 +93,8 @@ void PowerManager::on_power_out() {
     }
     if (door_manager)
         door_manager->set_power_out(); 
-    if (animatronic)
-    animatronic->set_power_out();
+    if (animatronic_manager)
+        animatronic_manager->notify_power_out();
     
     apply_light_state();
 }

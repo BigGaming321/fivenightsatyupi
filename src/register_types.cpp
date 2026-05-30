@@ -20,7 +20,15 @@ void initialize_game_manager_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<PowerManager>();
     ClassDB::register_class<PowerUI>();
     ClassDB::register_class<DoorManager>();
-    ClassDB::register_class<Animatronic>();
+
+    GDREGISTER_ABSTRACT_CLASS(Animatronic);
+    ClassDB::register_class<Dean>();
+    ClassDB::register_class<Student>();
+    ClassDB::register_class<Librarian>();
+    ClassDB::register_class<Janitor>();
+    ClassDB::register_class<Oble>();
+    ClassDB::register_class<RyanAnimatronic>();
+    ClassDB::register_class<AnimatronicManager>(); 
 }
 
 void uninitialize_game_manager_module(ModuleInitializationLevel p_level) {
