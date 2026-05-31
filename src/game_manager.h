@@ -5,7 +5,7 @@
 #include "camera_manager.h"
 #include "power_manager.h"
 #include "door_manager.h"
-#include "animatronic.h"
+#include "night_manager.h"
 
 using namespace godot;
 
@@ -13,13 +13,13 @@ class GameManager : public Node {
     GDCLASS(GameManager, Node);
 
 private:
-    CameraManager*      camera_manager      = nullptr;
-    PowerManager*       power_manager       = nullptr;
-    DoorManager*        door_manager        = nullptr;
-    AnimatronicManager* animatronic_manager = nullptr;
+    CameraManager* camera_manager = nullptr;
+    PowerManager*  power_manager  = nullptr;
+    DoorManager*   door_manager   = nullptr;
+    NightManager*  night_manager  = nullptr;
 
 public:
-    void _ready() override;
+    void _ready()               override;
     void _process(double delta) override;
 
 protected:

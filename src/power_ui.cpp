@@ -1,5 +1,4 @@
 #include "power_ui.h"
-#include "animatronic.h"  // for AnimatronicManager
 
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -16,40 +15,40 @@ void PowerUI::_ready() {
     if (!power_manager)
         UtilityFunctions::printerr("PowerUI: PowerManager not found!");
 
-    animatronic_manager = root->get_node<AnimatronicManager>("AnimatronicManager");
-    if (!animatronic_manager)
-        UtilityFunctions::printerr("PowerUI: AnimatronicManager not found!");
+    night_manager = root->get_node<NightManager>("NightManager");
+    if (!night_manager)
+        UtilityFunctions::printerr("PowerUI: NightManager not found!");
 
-    // --- Timer label (above power bar) ---
+    // Timer label
     timer_label = memnew(Label);
     timer_label->set_anchors_preset(Control::PRESET_BOTTOM_LEFT);
-    timer_label->set_position(Vector2(20, -120));  // above power bar
+    timer_label->set_position(Vector2(20, -120));
     timer_label->set_text("12:00 AM");
     add_child(timer_label);
 
-    // --- Bar background (bigger: 240x28) ---
+    // Bar background
     bar_bg = memnew(ColorRect);
     bar_bg->set_color(Color(0.15f, 0.15f, 0.15f, 1.0f));
     bar_bg->set_anchors_preset(Control::PRESET_BOTTOM_LEFT);
     bar_bg->set_position(Vector2(20, -80));
-    bar_bg->set_size(Vector2(240, 28));   // wider + taller
+    bar_bg->set_size(Vector2(240, 28));
     add_child(bar_bg);
 
-    // --- Bar fill ---
+    // Bar fill
     bar_fill = memnew(ColorRect);
     bar_fill->set_color(Color(0.2f, 0.85f, 0.2f, 1.0f));
     bar_fill->set_position(Vector2(0, 0));
     bar_fill->set_size(Vector2(240, 28));
     bar_bg->add_child(bar_fill);
 
-    // --- Percentage label (bigger font size) ---
+    // Percentage label
     pct_label = memnew(Label);
     pct_label->set_anchors_preset(Control::PRESET_BOTTOM_LEFT);
     pct_label->set_position(Vector2(20, -48));
     pct_label->set_text("100%");
     add_child(pct_label);
 
-    // --- Blackout overlay ---
+    // Blackout overlay
     dim_overlay = memnew(ColorRect);
     dim_overlay->set_anchors_preset(Control::PRESET_FULL_RECT);
     dim_overlay->set_color(Color(0.0f, 0.0f, 0.0f, 0.75f));
@@ -70,25 +69,22 @@ void PowerUI::update_bar(float pct) {
     }
 
     bar_fill->set_color(fill_color);
-    bar_fill->set_size(Vector2(240.0f * t, 28.0f));  // match new size
+    bar_fill->set_size(Vector2(240.0f * t, 28.0f));
     pct_label->set_text(String::num_int64((int)pct) + "%");
 }
 
 void PowerUI::update_timer() {
-    if (!animatronic_manager) return;
+    if (!night_manager) return;
 
-    // 60 real seconds = 6 hours (12:00 AM to 6:00 AM = 360 in-game minutes)
-    // We snap to 10-minute increments, so there are 36 steps total.
-    // Each step = 60s / 36 = ~1.667 real seconds.
-    float elapsed = animatronic_manager->get_game_timer();
+    // 60 real seconds = 6 in-game hours (12:00 AM -> 6:00 AM = 360 minutes).
+    // Snap to 10-minute increments (36 steps; each step ~1.667 real seconds).
+    float elapsed = night_manager->get_night_timer();
     float clamped = CLAMP(elapsed, 0.0f, 60.0f);
 
-    // Which 10-minute block are we in?
-    int total_minutes = ((int)(clamped * 6.0f) / 10) * 10; // snap to nearest 10
+    int total_minutes = ((int)(clamped * 6.0f) / 10) * 10;
     int hour          = 12 + total_minutes / 60;
     int minute        = total_minutes % 60;
-
-    int display_hour = (hour == 12) ? 12 : hour % 12;
+    int display_hour  = (hour == 12) ? 12 : hour % 12;
 
     String h_str = String::num_int64(display_hour);
     String m_str = (minute < 10)

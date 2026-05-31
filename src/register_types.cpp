@@ -5,7 +5,7 @@
 #include "power_manager.h"
 #include "power_ui.h"
 #include "door_manager.h"
-#include "animatronic.h"
+#include "night_manager.h"
 
 using namespace godot;
 
@@ -28,7 +28,7 @@ void initialize_game_manager_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<Janitor>();
     ClassDB::register_class<Oble>();
     ClassDB::register_class<RyanAnimatronic>();
-    ClassDB::register_class<AnimatronicManager>(); 
+    ClassDB::register_class<NightManager>();
 }
 
 void uninitialize_game_manager_module(ModuleInitializationLevel p_level) {
