@@ -33,7 +33,8 @@ public:
     void set_power_out(bool value);
     void hide_doors();    
     void restore_doors(); 
-
+    void force_open_doors();
+    
     bool is_left_closed()  const { return left_door.is_closed; }
     bool is_right_closed() const { return right_door.is_closed; }
 

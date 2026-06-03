@@ -172,8 +172,12 @@ void NightManager::advance_to_next_night() {
     if (root) {
         CameraManager* cam = root->get_node<CameraManager>("CameraManager");
         if (cam) cam->reset_for_new_night();
+        DoorManager* doors = root->get_node<DoorManager>("DoorManager");
+        if (doors) {
+            doors->force_open_doors();
+            UtilityFunctions::print("NightManager: doors reset to open");
+        }
     }
-
     show_night_overlay(current_night);
 }
 void NightManager::on_game_over() {

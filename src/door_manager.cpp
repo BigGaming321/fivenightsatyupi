@@ -71,6 +71,12 @@ void DoorManager::restore_doors() {
     if (right_door.display)
         right_door.is_closed ? right_door.display->show() : right_door.display->hide();
 }
+void DoorManager::force_open_doors() {
+    left_door.is_closed  = false;
+    right_door.is_closed = false;
+    if (left_door.display)  left_door.display->hide();
+    if (right_door.display) right_door.display->hide();
+}
 
 void DoorManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("toggle_left"),    &DoorManager::toggle_left);
