@@ -33,6 +33,30 @@ void PowerManager::_ready() {
     canvas->add_child(light_overlay);
 
     apply_light_state();
+
+    // DEBUG: dump all canvas layers in scene
+    // if (root) {
+    //     for (int i = 0; i < root->get_child_count(); i++) {
+    //         Node* child = root->get_child(i);
+    //         UtilityFunctions::print("Child: ", child->get_name(), " type: ", child->get_class());
+    //         for (int j = 0; j < child->get_child_count(); j++) {
+    //             Node* grandchild = child->get_child(j);
+    //             UtilityFunctions::print("  -> ", grandchild->get_name(), " type: ", grandchild->get_class());
+    //         }
+    //     }
+    // }
+    if (!light_overlay) {  // only create once
+        CanvasLayer* canvas = memnew(CanvasLayer);
+        canvas->set_layer(10);
+        add_child(canvas);
+
+        light_overlay = memnew(ColorRect);
+        light_overlay->set_anchors_preset(Control::PRESET_FULL_RECT);
+        light_overlay->set_color(Color(0.0f, 0.0f, 0.0f, 0.45f));
+        canvas->add_child(light_overlay);
+    }
+
+    apply_light_state();
 }
 
 void PowerManager::_process(double delta) {
@@ -66,13 +90,11 @@ void PowerManager::reset_power() {
     power_out = false;
     lights_on = false;
 
-    if (camera_manager) {
-        camera_manager->set_power_out(false);
-    }
-    if (door_manager)
-        door_manager->set_power_out(false);  // you'll need to make this take a bool too
+    if (camera_manager) camera_manager->set_power_out(false);
+    if (door_manager)   door_manager->set_power_out(false);
 
-    apply_light_state();
+    if (light_overlay) light_overlay->hide();  // undo what on_power_out's apply_light_state did
+
     UtilityFunctions::print("PowerManager: power reset to 100");
 }
 

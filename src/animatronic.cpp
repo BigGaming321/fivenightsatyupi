@@ -135,9 +135,9 @@ void Animatronic::_process(double delta) {
 
     if (static_timer > 0.0f) {
         static_timer -= dt;
-        // Show while camera is open, hide when timer expires or cams close.
         if (static_overlay) {
-            if (static_timer > 0.0f && camera_manager && camera_manager->is_open())
+            if (static_timer > 0.0f && camera_manager && camera_manager->is_open()
+                && camera_manager->get_camera_index() == current_cam)
                 static_overlay->show();
             else
                 static_overlay->hide();
@@ -414,12 +414,8 @@ void Librarian::_ready() {
     if (!root) return;
 
     TextureRect* s = memnew(TextureRect);
-    // Sized to sit over the camera feed area only -- NOT full screen.
-    s->set_anchors_preset(Control::PRESET_CENTER);
-    s->set_stretch_mode(TextureRect::STRETCH_SCALE);
-    s->set_custom_minimum_size(Vector2(400, 300));
-    s->set_size(Vector2(400, 300));
-    s->set_position(Vector2(-200, -150)); // centred over camera panel
+    s->set_anchors_preset(Control::PRESET_FULL_RECT);
+    s->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_COVERED);
     {
         Ref<Texture2D> tex = ResourceLoader::get_singleton()->load("res://assets/images/static.png");
         if (!tex.is_null()) s->set_texture(tex);
@@ -446,15 +442,18 @@ void Librarian::setup() {
 }
 
 void Librarian::on_move() {
-    // Always arm the blind timer. Only show the overlay if the player
-    // currently has the camera monitor open -- no punishment while cams closed.
     if (!my_static_overlay) return;
-    static_timer = camera_blind_duration; // arm via base member (friend access)
+
+    UtilityFunctions::print("Librarian: moved to CAM ", current_cam);
+    UtilityFunctions::print("Librarian: attacked CAM ", current_cam, "!");
+
+    static_timer = camera_blind_duration;
+
     if (is_watched_on_cam()) {
         my_static_overlay->show();
-        UtilityFunctions::print("Librarian: camera static shown for ", camera_blind_duration, "s");
+        UtilityFunctions::print("Librarian: static shown -- player was watching CAM ", current_cam);
     } else {
-        UtilityFunctions::print("Librarian: static armed (cams closed -- won't show)");
+        UtilityFunctions::print("Librarian: static armed -- player not on CAM ", current_cam, " yet");
     }
 }
 
