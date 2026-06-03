@@ -30,7 +30,7 @@ public:
 
     void toggle_left();
     void toggle_right();
-    void set_power_out();
+    void set_power_out(bool value);
     void hide_doors();    
     void restore_doors(); 
 

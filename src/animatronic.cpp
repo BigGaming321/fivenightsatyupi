@@ -135,8 +135,13 @@ void Animatronic::_process(double delta) {
 
     if (static_timer > 0.0f) {
         static_timer -= dt;
-        if (static_timer <= 0.0f && static_overlay)
-            static_overlay->hide();
+        // Show while camera is open, hide when timer expires or cams close.
+        if (static_overlay) {
+            if (static_timer > 0.0f && camera_manager && camera_manager->is_open())
+                static_overlay->show();
+            else
+                static_overlay->hide();
+        }
     }
 
     if (waiting_at_door) {
@@ -340,9 +345,11 @@ void Animatronic::emit_power_drained(float amount) {
 }
 
 void Animatronic::set_static_overlay(TextureRect* overlay, float duration) {
-    if (overlay)         static_overlay = overlay;
-    if (duration > 0.0f) static_timer   = duration;
-    if (static_overlay)  static_overlay->show();
+    // Register the pointer — never show here. Visibility is managed entirely
+    // by _process (camera-open check) and on_move (explicit show).
+    if (overlay) static_overlay = overlay;
+    if (duration > 0.0f) static_timer = duration;
+    // Do NOT call show() here — caller decides when to show.
 }
 
 // ===========================================================================
@@ -407,8 +414,12 @@ void Librarian::_ready() {
     if (!root) return;
 
     TextureRect* s = memnew(TextureRect);
-    s->set_anchors_preset(Control::PRESET_FULL_RECT);
-    s->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_COVERED);
+    // Sized to sit over the camera feed area only -- NOT full screen.
+    s->set_anchors_preset(Control::PRESET_CENTER);
+    s->set_stretch_mode(TextureRect::STRETCH_SCALE);
+    s->set_custom_minimum_size(Vector2(400, 300));
+    s->set_size(Vector2(400, 300));
+    s->set_position(Vector2(-200, -150)); // centred over camera panel
     {
         Ref<Texture2D> tex = ResourceLoader::get_singleton()->load("res://assets/images/static.png");
         if (!tex.is_null()) s->set_texture(tex);
@@ -416,10 +427,10 @@ void Librarian::_ready() {
     }
     s->hide();
     my_static_overlay = s;
-    set_static_overlay(s, 0.0f);
+    set_static_overlay(s, 0.0f); // register pointer only; duration set on first move
 
     CanvasLayer* sl = memnew(CanvasLayer);
-    sl->set_layer(cam_layer + 1);
+    sl->set_layer(cam_layer + 1); // just above camera overlay
     sl->add_child(s);
     root->call_deferred("add_child", sl);
 }
@@ -435,8 +446,16 @@ void Librarian::setup() {
 }
 
 void Librarian::on_move() {
-    set_static_overlay(my_static_overlay, camera_blind_duration);
-    UtilityFunctions::print("Librarian: camera static for ", camera_blind_duration, "s");
+    // Always arm the blind timer. Only show the overlay if the player
+    // currently has the camera monitor open -- no punishment while cams closed.
+    if (!my_static_overlay) return;
+    static_timer = camera_blind_duration; // arm via base member (friend access)
+    if (is_watched_on_cam()) {
+        my_static_overlay->show();
+        UtilityFunctions::print("Librarian: camera static shown for ", camera_blind_duration, "s");
+    } else {
+        UtilityFunctions::print("Librarian: static armed (cams closed -- won't show)");
+    }
 }
 
 // ===========================================================================

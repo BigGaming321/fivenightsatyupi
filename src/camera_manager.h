@@ -33,8 +33,10 @@ public:
     void prev_camera();
 
     bool is_open() const { return cam_open; }
-    void set_power_out() { power_out = true; } 
+    void set_power_out(bool value) { power_out = value; }
     int get_camera_index() const { return current_cam; }
+    void reset_for_new_night();
+
 
 protected:
     static void _bind_methods();

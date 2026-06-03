@@ -107,8 +107,8 @@ protected:
     float move_interval_max  = 15.0f;
     float door_reaction_time = 5.0f;
     float jumpscare_duration = 2.0f;
-    float troll_interval_min = 30.0f;
-    float troll_interval_max = 90.0f;
+    float troll_interval_min = 120.0f;  // 2 min minimum between troll sounds
+    float troll_interval_max = 300.0f;  // up to 5 min
     int   cam_layer          = 10;
     int   jumpscare_layer    = 15;
 

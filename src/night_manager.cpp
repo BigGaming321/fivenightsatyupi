@@ -166,9 +166,16 @@ void NightManager::advance_to_next_night() {
 
     reset_all_animatronics();
     if (power_manager) power_manager->reset_power();
+
+    // ADD THIS:
+    Node* root = get_parent();
+    if (root) {
+        CameraManager* cam = root->get_node<CameraManager>("CameraManager");
+        if (cam) cam->reset_for_new_night();
+    }
+
     show_night_overlay(current_night);
 }
-
 void NightManager::on_game_over() {
     UtilityFunctions::print("NightManager: GAME OVER on Night ", current_night);
     for (auto* a : animatronics) if (a) a->deactivate();
@@ -279,7 +286,7 @@ void NightManager::notify_light_on(bool left_side) {
 }
 
 void NightManager::notify_power_out() {
-    for (auto* a : animatronics) if (a) a->notify_power_out();
+    // for (auto* a : animatronics) if (a) a->notify_power_out();
 }
 
 void NightManager::play_troll() {

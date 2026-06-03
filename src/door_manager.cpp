@@ -47,14 +47,18 @@ void DoorManager::toggle_door(Door& door) {
 void DoorManager::toggle_left()  { toggle_door(left_door);  }
 void DoorManager::toggle_right() { toggle_door(right_door); }
 
-void DoorManager::set_power_out() {
-    power_out = true;
+void DoorManager::set_power_out(bool value) {
+    power_out = value;
 
-    // force both overlays hidden
-    left_door.is_closed  = false;
-    right_door.is_closed = false;
-    left_door.display->hide();
-    right_door.display->hide();
+    if (value) {
+        // power lost — force both doors open and hidden
+        left_door.is_closed  = false;
+        right_door.is_closed = false;
+        if (left_door.display)  left_door.display->hide();
+        if (right_door.display) right_door.display->hide();
+    }
+    // if value is false (night reset), doors stay closed/open as-is
+    // since reset_power() is called at night start when both are already open
 }
 void DoorManager::hide_doors() {
     if (left_door.display)  left_door.display->hide();

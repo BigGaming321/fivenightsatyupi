@@ -104,7 +104,10 @@ void CameraManager::toggle_cameras() {
     if (power_out) return;  // can't open cams if power is out
     cam_open ? close_cameras() : open_cameras();
 }
-
+void CameraManager::reset_for_new_night() {
+    power_out = false;
+    if (cam_open) close_cameras();
+}
 void CameraManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("open_cameras"),   &CameraManager::open_cameras);
     ClassDB::bind_method(D_METHOD("close_cameras"),  &CameraManager::close_cameras);

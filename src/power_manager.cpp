@@ -65,7 +65,14 @@ void PowerManager::reset_power() {
     power     = 100.0f;
     power_out = false;
     lights_on = false;
-    apply_light_state(); // hide the dark overlay since lights start off
+
+    if (camera_manager) {
+        camera_manager->set_power_out(false);
+    }
+    if (door_manager)
+        door_manager->set_power_out(false);  // you'll need to make this take a bool too
+
+    apply_light_state();
     UtilityFunctions::print("PowerManager: power reset to 100");
 }
 
@@ -92,11 +99,11 @@ void PowerManager::on_power_out() {
     UtilityFunctions::print("PowerManager: power out!");
 
     if (camera_manager) {
-        camera_manager->set_power_out();
+        camera_manager->set_power_out(true);
         camera_manager->close_cameras();
     }
     if (door_manager)
-        door_manager->set_power_out();
+        door_manager->set_power_out(true);
     if (night_manager)
         night_manager->notify_power_out();
 
