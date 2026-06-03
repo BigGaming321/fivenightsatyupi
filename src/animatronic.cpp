@@ -92,9 +92,24 @@ void Animatronic::_ready() {
 
 void Animatronic::activate() {
     if (state != AnimatronicState::INACTIVE) return;
+
+    // Schedule a random spawn time during the night instead of spawning instantly
+    float spawn_delay = rng->randf_range(spawn_delay_min, spawn_delay_max);
+    UtilityFunctions::print(get_name_str(), ": will spawn in ", spawn_delay, "s");
+
+    Timer* spawn_timer = memnew(Timer);
+    spawn_timer->set_one_shot(true);
+    add_child(spawn_timer);
+    spawn_timer->connect("timeout", callable_mp(this, &Animatronic::do_spawn));
+    spawn_timer->start(spawn_delay);
+}
+
+void Animatronic::do_spawn() {
+    if (state != AnimatronicState::INACTIVE) return;
     state = AnimatronicState::IDLE;
+    current_cam = all_cams[rng->randi_range(0, (int)all_cams.size() - 1)];
     schedule_next_move();
-    UtilityFunctions::print(get_name_str(), ": activated on CAM ", current_cam);
+    UtilityFunctions::print(get_name_str(), ": spawned on CAM ", current_cam);
 }
 
 void Animatronic::deactivate() {
@@ -158,18 +173,36 @@ void Animatronic::_process(double delta) {
             }
         } else {
             if (blocked) {
-                UtilityFunctions::print(get_name_str(), ": door closed -- retreating");
                 waiting_at_door = false;
-                std::vector<int> safe;
-                for (int c : all_cams) {
-                    bool is_atk = false;
-                    for (int ac : attack_cams) if (c == ac) { is_atk = true; break; }
-                    if (!is_atk) safe.push_back(c);
+
+                // 50/50: move to next cam OR despawn and re-schedule later
+                bool despawn = rng->randf() < 0.5f;
+                if (despawn) {
+                    UtilityFunctions::print(get_name_str(), ": door blocked -- despawning");
+                    hide_cam_overlay();
+                    state = AnimatronicState::INACTIVE;
+
+                    // Re-schedule a future spawn
+                    float respawn_delay = rng->randf_range(spawn_delay_min, spawn_delay_max);
+                    UtilityFunctions::print(get_name_str(), ": will respawn in ", respawn_delay, "s");
+                    Timer* t = memnew(Timer);
+                    t->set_one_shot(true);
+                    add_child(t);
+                    t->connect("timeout", callable_mp(this, &Animatronic::do_spawn));
+                    t->start(respawn_delay);
+                } else {
+                    UtilityFunctions::print(get_name_str(), ": door blocked -- retreating to next cam");
+                    std::vector<int> safe;
+                    for (int c : all_cams) {
+                        bool is_atk = false;
+                        for (int ac : attack_cams) if (c == ac) { is_atk = true; break; }
+                        if (!is_atk) safe.push_back(c);
+                    }
+                    if (!safe.empty())
+                        current_cam = safe[rng->randi_range(0, (int)safe.size() - 1)];
+                    state = AnimatronicState::IDLE;
+                    schedule_next_move();
                 }
-                if (!safe.empty())
-                    current_cam = safe[rng->randi_range(0, (int)safe.size() - 1)];
-                state = AnimatronicState::IDLE;
-                schedule_next_move();
             } else if (door_timer <= 0.0f) {
                 UtilityFunctions::print(get_name_str(), ": door open -- JUMPSCARE");
                 waiting_at_door = false;
@@ -361,6 +394,7 @@ void Animatronic::_bind_methods() {
     ClassDB::bind_method(D_METHOD("deactivate"),                    &Animatronic::deactivate);
     ClassDB::bind_method(D_METHOD("reset_for_next_night"),          &Animatronic::reset_for_next_night);
     ClassDB::bind_method(D_METHOD("notify_power_out"),              &Animatronic::notify_power_out);
+    ClassDB::bind_method(D_METHOD("do_spawn"),                      &Animatronic::do_spawn);
     ClassDB::bind_method(D_METHOD("set_power_out"),                 &Animatronic::set_power_out);
     ClassDB::bind_method(D_METHOD("play_troll"),                    &Animatronic::play_troll);
     ClassDB::bind_method(D_METHOD("notify_light_on", "left_side"),  &Animatronic::notify_light_on);

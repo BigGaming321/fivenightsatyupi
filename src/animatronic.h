@@ -176,6 +176,11 @@ private:
         shared_game_timer = ptr;
         game_duration     = duration;
     }
+
+    float spawn_delay_min = 5.0f;   // earliest possible spawn time (seconds into night)
+    float spawn_delay_max = 30.0f;  // latest possible spawn time
+
+    void do_spawn();
 };
 
 // ===========================================================================
