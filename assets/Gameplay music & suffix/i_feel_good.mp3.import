@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://u3fe5xstrkwo"
+path="res://.godot/imported/i_feel_good.mp3-b7d174672c4776a919e1945480e8525e.mp3str"
+
+[deps]
+
+source_file="res://assets/Gameplay music & suffix/i_feel_good.mp3"
+dest_files=["res://.godot/imported/i_feel_good.mp3-b7d174672c4776a919e1945480e8525e.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,9 +1,12 @@
 [gd_scene format=3 uid="uid://btgvx7mo38ahh"]
 
-[ext_resource type="Texture2D" uid="uid://dhrrnw5vphe2x" path="res://scenes/main.jpg" id="1_0wfyh"]
+[ext_resource type="Texture2D" uid="uid://bg6cgtowas8q8" path="res://scenes/main.webp" id="1_jyhfs"]
 [ext_resource type="Texture2D" uid="uid://dyoh6tf750svi" path="res://assets/cams/canteen.png" id="2_jyhfs"]
 [ext_resource type="Texture2D" uid="uid://clqn3e1rl0q2y" path="res://assets/doors/door_left_closed.png" id="4_tbgi4"]
+[ext_resource type="AudioStream" uid="uid://bcp28lrma03qp" path="res://assets/Gameplay music & suffix/lights_sfx.mp3" id="5_o6xl0"]
 [ext_resource type="Texture2D" uid="uid://ca0yjsgk1ca78" path="res://assets/doors/door_right_closed.png" id="5_tefeu"]
+[ext_resource type="AudioStream" uid="uid://c0q38hd8dib01" path="res://assets/Gameplay music & suffix/game-bg-music.mp3" id="6_tipki"]
+[ext_resource type="AudioStream" uid="uid://crfqmq35khhym" path="res://assets/Gameplay music & suffix/doors_sfx.mp3" id="7_85g3d"]
 
 [node name="Main" type="Node2D" unique_id=299251246]
 visible = false
@@ -27,14 +30,16 @@ offset_left = -72.0
 offset_top = -135.0
 offset_right = 1976.0
 offset_bottom = 1425.0
-texture = ExtResource("1_0wfyh")
+mouse_filter = 2
+texture = ExtResource("1_jyhfs")
 
 [node name="CameraFeed" type="TextureRect" parent="CameraSystem" unique_id=1110751121]
 visible = false
-offset_left = -6.0
-offset_top = -28.0
-offset_right = 1914.0
-offset_bottom = 1052.0
+offset_left = -3.0
+offset_top = 6.0
+offset_right = 1917.0
+offset_bottom = 1086.0
+mouse_filter = 2
 texture = ExtResource("2_jyhfs")
 
 [node name="DoorSystem" type="CanvasLayer" parent="." unique_id=1497066716]
@@ -45,6 +50,7 @@ offset_left = -81.0
 offset_top = -125.0
 offset_right = 370.0
 offset_bottom = 1414.0
+mouse_filter = 2
 texture = ExtResource("4_tbgi4")
 
 [node name="RightDoor" type="TextureRect" parent="DoorSystem" unique_id=303050774]
@@ -53,6 +59,50 @@ offset_left = 1530.0
 offset_top = -141.0
 offset_right = 1981.0
 offset_bottom = 1451.0
+mouse_filter = 2
 texture = ExtResource("5_tefeu")
 
+[node name="HudButtons" type="CanvasLayer" parent="." unique_id=1507304460]
+layer = 10
+
+[node name="LeftDoorButton" type="Button" parent="HudButtons" unique_id=359476873]
+visible = false
+offset_left = 20.0
+offset_top = 480.0
+offset_right = 270.0
+offset_bottom = 610.0
+theme_override_font_sizes/font_size = 28
+text = "<< Door"
+
+[node name="RightDoorButton" type="Button" parent="HudButtons" unique_id=1182345544]
+visible = false
+offset_left = 1650.0
+offset_top = 480.0
+offset_right = 1900.0
+offset_bottom = 610.0
+theme_override_font_sizes/font_size = 28
+text = "Door >>"
+
+[node name="LightsButton" type="Button" parent="HudButtons" unique_id=245843802]
+visible = false
+offset_left = 330.0
+offset_top = 170.0
+offset_right = 530.0
+offset_bottom = 260.0
+theme_override_font_sizes/font_size = 28
+text = "Lights"
+
 [node name="PowerUI" type="PowerUI" parent="." unique_id=720141294]
+
+[node name="LightsSfx" type="AudioStreamPlayer" parent="." unique_id=492598900]
+stream = ExtResource("5_o6xl0")
+bus = &"SFX"
+
+[node name="GameBgMusic" type="AudioStreamPlayer" parent="." unique_id=549690505]
+stream = ExtResource("6_tipki")
+bus = &"Music"
+playback_type = 1
+
+[node name="DoorsSfx" type="AudioStreamPlayer" parent="." unique_id=1578244332]
+stream = ExtResource("7_85g3d")
+bus = &"SFX"

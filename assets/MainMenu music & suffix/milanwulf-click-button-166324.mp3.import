@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d01e0a73rc7j2"
+path="res://.godot/imported/milanwulf-click-button-166324.mp3-9d0008bb2f0f58c40342f865426aabb3.mp3str"
+
+[deps]
+
+source_file="res://assets/MainMenu music & suffix/milanwulf-click-button-166324.mp3"
+dest_files=["res://.godot/imported/milanwulf-click-button-166324.mp3-9d0008bb2f0f58c40342f865426aabb3.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

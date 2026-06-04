@@ -3,6 +3,7 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
 #include "camera_manager.h"
@@ -24,6 +25,10 @@ private:
 
     void toggle_door(Door& door);
     CameraManager* camera_manager = nullptr;
+
+    Button* left_door_button  = nullptr;
+    Button* right_door_button = nullptr;
+    Button* lights_button     = nullptr;
 
 public:
     void _ready() override;

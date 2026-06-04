@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://dt8t2oysmixhx"]
+
+[ext_resource type="Texture2D" uid="uid://bg6cgtowas8q8" path="res://scenes/main.webp" id="1_2klcf"]
+[ext_resource type="Texture2D" uid="uid://dyoh6tf750svi" path="res://assets/cams/canteen.png" id="2_2lpho"]
+[ext_resource type="Texture2D" uid="uid://boxnuntjkulte" path="res://scenes/map (4).png" id="3_nakos"]
+[ext_resource type="Texture2D" uid="uid://clqn3e1rl0q2y" path="res://assets/doors/door_left_closed.png" id="4_jh32y"]
+[ext_resource type="Texture2D" uid="uid://ca0yjsgk1ca78" path="res://assets/doors/door_right_closed.png" id="5_be0no"]
+
+[node name="Main" type="Node2D" unique_id=299251246]
+
+[node name="GameManager" type="GameManager" parent="." unique_id=601935917]
+
+[node name="PowerManager" type="PowerManager" parent="." unique_id=883581399]
+
+[node name="DoorManager" type="DoorManager" parent="." unique_id=555232842]
+
+[node name="NightManager" type="NightManager" parent="." unique_id=850021215]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=621684776]
+
+[node name="CameraManager" type="CameraManager" parent="." unique_id=642375280]
+
+[node name="CameraSystem" type="CanvasLayer" parent="." unique_id=966207911]
+
+[node name="MainFeed" type="TextureRect" parent="CameraSystem" unique_id=698517148]
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = -1
+anchor_right = 0.99600005
+anchor_bottom = 0.99000007
+offset_left = -1.0
+offset_right = 0.67993164
+offset_bottom = -0.20007324
+texture = ExtResource("1_2klcf")
+expand_mode = 1
+
+[node name="CameraFeed" type="TextureRect" parent="CameraSystem" unique_id=1110751121]
+visible = false
+offset_left = 2.0
+offset_top = -3.0
+offset_right = 1918.0
+offset_bottom = 1081.0
+texture = ExtResource("2_2lpho")
+expand_mode = 1
+
+[node name="Map(4)" type="TextureRect" parent="CameraSystem" unique_id=691197289]
+visible = false
+offset_left = 1216.0
+offset_top = 723.0
+offset_right = 1799.0
+offset_bottom = 1051.0
+mouse_filter = 2
+texture = ExtResource("3_nakos")
+expand_mode = 1
+
+[node name="DoorSystem" type="CanvasLayer" parent="." unique_id=1497066716]
+
+[node name="LeftDoor" type="TextureRect" parent="DoorSystem" unique_id=750921097]
+visible = false
+offset_left = 2.0
+offset_top = -7.0
+offset_right = 243.0
+offset_bottom = 644.0
+texture = ExtResource("4_jh32y")
+expand_mode = 1
+
+[node name="RightDoor" type="TextureRect" parent="DoorSystem" unique_id=303050774]
+visible = false
+offset_left = 909.0
+offset_top = 3.0
+offset_right = 1146.0
+offset_bottom = 658.0
+texture = ExtResource("5_be0no")
+expand_mode = 1
+
+[node name="PowerUI" type="PowerUI" parent="." unique_id=720141294]

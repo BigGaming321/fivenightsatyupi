@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/timer.hpp>
+#include <godot_cpp/classes/audio_stream_player.hpp>
 #include "animatronic.h"
 #include <vector>
 
@@ -53,15 +54,23 @@ public:
     void notify_power_out();
     void play_troll();
 
+    // Connected to the Godot-side "Start Night" button
+    void on_start_pressed();
+
     // Queries
     bool  is_any_game_over() const;
     bool  is_game_won()      const;
     int   get_active_count() const;
     int   get_current_night() const { return current_night; }
     float get_night_timer()   const { return night_timer; }
+    bool is_night_active() const { return night_started && !night_finished && !game_fully_over; }
+    
+    // Called by the Godot-side "Back to Main Menu" button
+    void go_to_main_menu();
 
 protected:
     static void _bind_methods();
+    godot::AudioStreamPlayer* bg_music = nullptr;
 
 private:
     // ---- Night configuration table ----------------------------------------
@@ -91,10 +100,12 @@ private:
     TextureRect* truend_image    = nullptr;
 
     // ---- Night-start overlay -----------------------------------------------
-    CanvasLayer* overlay_canvas = nullptr;
-    Label*       night_label    = nullptr;
-    Label*       subtitle_label = nullptr;
-    Button*      start_button   = nullptr;
+    CanvasLayer*       overlay_canvas = nullptr;
+    Label*             night_label    = nullptr;
+    Label*             subtitle_label = nullptr;
+    Button*            start_button   = nullptr;
+    Button*            back_button    = nullptr;
+    AudioStreamPlayer* click_sfx      = nullptr;
 
     // ---- Helpers -----------------------------------------------------------
     const NightConfig& cfg() const { return NIGHTS[current_night - 1]; }
@@ -112,9 +123,6 @@ private:
     void advance_to_next_night();// connected to a one-shot Timer after win
     void on_game_over();
     void on_true_ending();
-
-    // Connected to start_button.pressed
-    void on_start_pressed();
 };
 
 #endif // NIGHT_MANAGER_H

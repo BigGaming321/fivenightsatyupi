@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://j3e7nu68kcqq"
+path="res://.godot/imported/the-sound-designer-electtic-button-on-sound-a-fl-mastyer-edited-and-final-520904.mp3-b2c93a39aaadbc4294a6bbaa8ccbede7.mp3str"
+
+[deps]
+
+source_file="res://assets/MainMenu music & suffix/the-sound-designer-electtic-button-on-sound-a-fl-mastyer-edited-and-final-520904.mp3"
+dest_files=["res://.godot/imported/the-sound-designer-electtic-button-on-sound-a-fl-mastyer-edited-and-final-520904.mp3-b2c93a39aaadbc4294a6bbaa8ccbede7.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

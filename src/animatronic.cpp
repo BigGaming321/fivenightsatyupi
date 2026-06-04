@@ -21,11 +21,18 @@ static TextureRect* make_fullscreen_rect(const char* path, bool hidden = true) {
     return r;
 }
 
-static AudioStreamPlayer* make_audio(Node* parent, const char* path, const char* label) {
+static AudioStreamPlayer* make_audio(Node* parent, const char* path, const char* label, const char* bus_name = "Master") {
     AudioStreamPlayer* p = memnew(AudioStreamPlayer);
     Ref<AudioStream>   s = ResourceLoader::get_singleton()->load(path);
-    if (!s.is_null()) p->set_stream(s);
-    else UtilityFunctions::printerr("Animatronic: missing audio (", label, "): ", path);
+    
+    if (!s.is_null()) {
+        p->set_stream(s);
+    } else {
+        UtilityFunctions::printerr("Animatronic: missing audio (", label, "): ", path);
+    }
+   
+    p->set_bus(String(bus_name));
+
     parent->call_deferred("add_child", p);
     return p;
 }
@@ -71,8 +78,8 @@ void Animatronic::_ready() {
     jumpscare_canvas->add_child(jumpscare_image);
     root->call_deferred("add_child", jumpscare_canvas);
 
-    jumpscare_audio = make_audio(root, get_jumpscare_audio_path(), "jumpscare");
-    troll_audio     = make_audio(root, get_troll_audio_path(),     "troll");
+    jumpscare_audio = make_audio(root, get_jumpscare_audio_path(), "jumpscare", "Music Bus");
+    troll_audio     = make_audio(root, get_troll_audio_path(),     "troll", "Music Bus");
 
     troll_timer = rng->randf_range(troll_interval_min, troll_interval_max);
 

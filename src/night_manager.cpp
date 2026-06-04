@@ -2,7 +2,10 @@
 #include "power_manager.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/audio_stream.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/classes/audio_stream_mp3.hpp>
 
 using namespace godot;
 
@@ -106,6 +109,8 @@ void NightManager::_process(double delta) {
 
 void NightManager::on_start_pressed() {
     if (night_started) return;
+    if (click_sfx && click_sfx->is_inside_tree()) click_sfx->play();
+    if (back_button) back_button->hide();
     hide_night_overlay();
     start_current_night();
 }
@@ -121,6 +126,10 @@ void NightManager::start_current_night() {
 
     activate_night_animatronics();
     night_started = true;
+
+    if (bg_music && bg_music->is_inside_tree()) {
+        bg_music->play();
+    }
 
     UtilityFunctions::print("NightManager: Night ", current_night,
                             " started -- survive ", cfg().game_duration, "s");
@@ -148,14 +157,22 @@ void NightManager::on_night_cleared() {
         return;
     }
 
-    // Flash the YOU WIN screen for 3 seconds, then advance.
+    if (bg_music && bg_music->is_playing()) {
+        bg_music->stop();
+    }
+
+    if (current_night >= 5) {
+        on_true_ending();
+        return;
+    }
+
     if (youwin_image) youwin_image->call_deferred("show");
 
     Timer* t = memnew(Timer);
     t->set_one_shot(true);
     add_child(t);
     t->connect("timeout", callable_mp(this, &NightManager::advance_to_next_night));
-    t->start(3.0f);
+    t->start(3.0f);    
 }
 
 void NightManager::advance_to_next_night() {
@@ -181,6 +198,11 @@ void NightManager::advance_to_next_night() {
     show_night_overlay(current_night);
 }
 void NightManager::on_game_over() {
+    
+    if (bg_music && bg_music->is_playing()) {
+        bg_music->stop();
+    }
+
     UtilityFunctions::print("NightManager: GAME OVER on Night ", current_night);
     for (auto* a : animatronics) if (a) a->deactivate();
     if (gameover_image) gameover_image->call_deferred("show");
@@ -191,6 +213,13 @@ void NightManager::on_true_ending() {
     UtilityFunctions::print("NightManager: TRUE ENDING -- all 5 nights survived!");
     for (auto* a : animatronics) if (a) a->deactivate();
     if (truend_image) truend_image->call_deferred("show");
+    // Show the back button so the player can return to the main menu
+    if (back_button) {
+        back_button->call_deferred("show");
+        // Re-parent it into the truend_canvas so it sits above the ending image
+        if (truend_canvas && back_button->get_parent() == overlay_canvas)
+            back_button->reparent(truend_canvas);
+    }
 }
 
 // ===========================================================================
@@ -227,22 +256,21 @@ void NightManager::build_start_overlay() {
     overlay_canvas = memnew(CanvasLayer);
     overlay_canvas->set_layer(60);
 
-    // Semi-transparent dark background
     TextureRect* bg = memnew(TextureRect);
     bg->set_anchors_preset(Control::PRESET_FULL_RECT);
     bg->set_modulate(Color(0, 0, 0, 0.75f));
+    bg->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);  // ADD
     overlay_canvas->add_child(bg);
 
-    // Night title
     night_label = memnew(Label);
     night_label->set_anchors_preset(Control::PRESET_CENTER_TOP);
     night_label->set_position(Vector2(-300, 150));
     night_label->set_size(Vector2(600, 80));
     night_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
     night_label->add_theme_font_size_override("font_size", 48);
+    night_label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);  // ADD
     overlay_canvas->add_child(night_label);
 
-    // Flavour subtitle
     subtitle_label = memnew(Label);
     subtitle_label->set_anchors_preset(Control::PRESET_CENTER_TOP);
     subtitle_label->set_position(Vector2(-280, 250));
@@ -250,6 +278,7 @@ void NightManager::build_start_overlay() {
     subtitle_label->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
     subtitle_label->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
     subtitle_label->add_theme_font_size_override("font_size", 22);
+    subtitle_label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);  // ADD
     overlay_canvas->add_child(subtitle_label);
 
     // Start button
@@ -263,8 +292,50 @@ void NightManager::build_start_overlay() {
         callable_mp(this, &NightManager::on_start_pressed));
     overlay_canvas->add_child(start_button);
 
+    // Back to Main Menu button (visible on overlay and true ending; hidden when night starts)
+    back_button = memnew(Button);
+    back_button->set_anchors_preset(Control::PRESET_CENTER);
+    back_button->set_position(Vector2(-120, 130));
+    back_button->set_size(Vector2(240, 50));
+    back_button->set_custom_minimum_size(Vector2(240, 50));
+    back_button->add_theme_font_size_override("font_size", 22);
+    back_button->set_text("Back to Main Menu");
+    back_button->connect("pressed",
+        callable_mp(this, &NightManager::go_to_main_menu));
+    overlay_canvas->add_child(back_button);
+
     overlay_canvas->hide();
     add_child(overlay_canvas);
+
+    // Click sound for overlay buttons
+    click_sfx = memnew(AudioStreamPlayer);
+    Ref<AudioStream> clk = ResourceLoader::get_singleton()->load(
+        "res://assets/MainMenu music & suffix/the-sound-designer-electtic-button-on-sound-a-fl-mastyer-edited-and-final-520904.mp3");
+    if (!clk.is_null()) click_sfx->set_stream(clk);
+    click_sfx->set_bus("SFX");
+    add_child(click_sfx);
+
+    // ==========================================
+    // UPDATED: Background Music Setup & Looping
+    // ==========================================
+    bg_music = memnew(AudioStreamPlayer);
+    Ref<AudioStream> bg_stream = ResourceLoader::get_singleton()->load(
+        "res://assets/Gameplay music & suffix/game-bg-music.mp3");
+    
+    if (!bg_stream.is_null()) {
+        bg_music->set_stream(bg_stream);
+        
+        // Explicitly cast to AudioStreamMP3 to turn looping on via code
+        Ref<AudioStreamMP3> mp3_stream = bg_stream;
+        if (mp3_stream.is_valid()) {
+            mp3_stream->set_loop(true);
+            UtilityFunctions::print("NightManager: Continuous looping forced for game-bg-music.");
+        }
+    } else {
+        UtilityFunctions::printerr("NightManager: game-bg-music sound not found!");
+    }
+    bg_music->set_bus("Music"); // Assigned to Music Bus
+    add_child(bg_music);
 }
 
 void NightManager::show_night_overlay(int night) {
@@ -314,6 +385,25 @@ int NightManager::get_active_count() const {
 }
 
 // ===========================================================================
+// NightManager -- go_to_main_menu
+// ===========================================================================
+
+void NightManager::go_to_main_menu() {
+    if (click_sfx && click_sfx->is_inside_tree()) click_sfx->play();
+    if (bg_music && bg_music->is_playing()) {
+        bg_music->stop();
+    }
+
+    current_night   = 1;
+    night_started   = false;
+    night_finished  = false;
+    game_fully_over = false;
+    night_timer     = 0.0f;
+    reset_all_animatronics();
+    get_tree()->change_scene_to_file("res://scenes/MM Scenes/Main_Menu.tscn");
+}
+
+// ===========================================================================
 // NightManager -- _bind_methods
 // ===========================================================================
 
@@ -326,4 +416,6 @@ void NightManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_active_count"),              &NightManager::get_active_count);
     ClassDB::bind_method(D_METHOD("get_current_night"),             &NightManager::get_current_night);
     ClassDB::bind_method(D_METHOD("get_night_timer"),               &NightManager::get_night_timer);
+    ClassDB::bind_method(D_METHOD("on_start_pressed"),              &NightManager::on_start_pressed);
+    ClassDB::bind_method(D_METHOD("go_to_main_menu"),               &NightManager::go_to_main_menu);
 }

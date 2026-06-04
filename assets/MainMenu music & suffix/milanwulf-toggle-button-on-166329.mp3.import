@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cdf6it5rcglbn"
+path="res://.godot/imported/milanwulf-toggle-button-on-166329.mp3-5212d151628309282fdadf1fb37919c2.mp3str"
+
+[deps]
+
+source_file="res://assets/MainMenu music & suffix/milanwulf-toggle-button-on-166329.mp3"
+dest_files=["res://.godot/imported/milanwulf-toggle-button-on-166329.mp3-5212d151628309282fdadf1fb37919c2.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
