@@ -16,12 +16,9 @@
 
 using namespace godot;
 
-class PowerManager;  // forward declare — avoid circular include
+class PowerManager;  
 
-// ===========================================================================
 // NightConfig -- per-night tuning table
-// ===========================================================================
-
 struct NightConfig {
     int         night_number;
     float       game_duration;      // seconds the player must survive
@@ -30,7 +27,6 @@ struct NightConfig {
     const char* subtitle;           // flavour text shown below the title
 };
 
-// ===========================================================================
 // NightManager
 //
 // Owns the full 5-night loop:
@@ -43,7 +39,6 @@ struct NightConfig {
 //
 // Place this node in your scene. It expects DoorManager and CameraManager
 // as siblings under the scene root.
-// ===========================================================================
 
 class NightManager : public Node {
     GDCLASS(NightManager, Node);
@@ -52,15 +47,12 @@ public:
     void _ready()               override;
     void _process(double delta) override;
 
-    // Called by DoorManager / PowerManager / GameManager
     void notify_light_on(bool left_side);
     void notify_power_out();
     void play_troll();
 
-    // Connected to the Godot-side "Start Night" button
     void on_start_pressed();
 
-    // Queries
     bool  is_any_game_over() const;
     bool  is_game_won()      const;
     int   get_active_count() const;
@@ -68,7 +60,6 @@ public:
     float get_night_timer()   const { return night_timer; }
     bool is_night_active() const { return night_started && !night_finished && !game_fully_over; }
     
-    // Called by the Godot-side "Back to Main Menu" button
     void go_to_main_menu();
 
 protected:
@@ -76,50 +67,36 @@ protected:
     godot::AudioStreamPlayer* bg_music = nullptr;
 
 private:
-    // ---- Night configuration table ----------------------------------------
     static const NightConfig NIGHTS[5];
-
-    // ---- Animatronics ------------------------------------------------------
     std::vector<Animatronic*> animatronics;
 
-    // ---- External managers -------------------------------------------------
     PowerManager* power_manager = nullptr;  // for per-night power reset
-
-    // ---- Night state -------------------------------------------------------
     int   current_night   = 1;
-    float night_timer     = 0.0f;  // injected into animatronics as a pointer
+    float night_timer     = 0.0f; 
     bool  night_started   = false;
     bool  night_finished  = false;
-    bool  game_fully_over = false; // set on Night 5 win or any game-over
-
-    // ---- Shared end-screen images (given to each animatronic) --------------
+    bool  game_fully_over = false; 
     TextureRect* gameover_image = nullptr;
     TextureRect* youwin_image   = nullptr;
-
-    // ---- Canvas layers for end screens ------------------------------------
     CanvasLayer* gameover_canvas = nullptr;
     CanvasLayer* youwin_canvas   = nullptr;
     CanvasLayer* truend_canvas   = nullptr;
     TextureRect* truend_image    = nullptr;
-
-    // ---- Night-start overlay -----------------------------------------------
     CanvasLayer*       overlay_canvas = nullptr;
     Label*             night_label    = nullptr;
     Label*             subtitle_label = nullptr;
     AudioStreamPlayer* night_voice[5] = {};
-    TextureRect*       night_images[5] = {};  // PNG splash per night
+    TextureRect*       night_images[5] = {};  
     Button*            start_button   = nullptr;
     Button*            back_button    = nullptr;
     AudioStreamPlayer* click_sfx      = nullptr;
 
-    // ---- Fade overlay ------------------------------------------------------
     CanvasLayer* fade_canvas  = nullptr;
     ColorRect*   fade_rect    = nullptr;
 
     void fade_to_black(float duration, const Callable& on_done);
     void fade_from_black(float duration);
 
-    // ---- Helpers -----------------------------------------------------------
     const NightConfig& cfg() const { return NIGHTS[current_night - 1]; }
 
     void build_end_screens();
