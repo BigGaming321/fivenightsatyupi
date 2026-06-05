@@ -14,7 +14,7 @@ using namespace godot;
 void CameraManager::_ready() {
     UtilityFunctions::print("CameraManager _ready CALLED");
     set_process_unhandled_input(true);
-//set_process_input(true);
+
 
     Node* root = get_parent();
     if (!root) { UtilityFunctions::printerr("CameraManager: no parent!"); return; }
@@ -40,7 +40,7 @@ void CameraManager::_ready() {
         { Rect2(815.0f - size/2, 539.0f - size/2, size, size), 0 }, // Canteen
         { Rect2(1025.0f - size/2, 557.0f - size/2, size, size), 1 }, // Office
         { Rect2(825.0f - size/2, 442.0f - size/2, size, size), 2 }, // Library
-        { Rect2(918.0f - size/2, 442.0f - size/2, size, size), 3 }, // Oblesquare (using 442 for Y)
+        { Rect2(918.0f - size/2, 442.0f - size/2, size, size), 3 }, // Oblesquare 
         { Rect2(1004.0f - size/2, 351.0f - size/2, size, size), 4 }, // Hallway
     };
     for (int i = 0; i < 5; i++) {
@@ -77,8 +77,7 @@ void CameraManager::_ready() {
     }
     cam_switch_sfx->set_bus("Master");
     add_child(cam_switch_sfx);
-
-    // Static sound (called externally by Librarian / Animatronic)
+  
     cam_static_sfx = memnew(AudioStreamPlayer);
     {
         Ref<AudioStream> s = ResourceLoader::get_singleton()->load(
