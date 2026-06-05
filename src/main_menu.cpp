@@ -208,7 +208,7 @@ void MainMenu::on_master_volume_changed(double value) {
     AudioServer* as = AudioServer::get_singleton();
     int bus_id = as->get_bus_index("Music");
     
-    // DEBUG PRINT: See what Godot is actually finding
+    // DEBUG PRINT: 
     UtilityFunctions::print("Music Slider moved! Value: ", value, " | Found Bus Index: ", bus_id);
 
     if (bus_id != -1) {
@@ -224,7 +224,7 @@ void MainMenu::on_sfx_volume_changed(double value) {
     AudioServer* as = AudioServer::get_singleton();
     int bus_id = as->get_bus_index("SFX");
     
-    // DEBUG PRINT: See what Godot is actually finding
+    // DEBUG PRINT: 
     UtilityFunctions::print("SFX Slider moved! Value: ", value, " | Found Bus Index: ", bus_id);
 
     if (bus_id != -1) {
