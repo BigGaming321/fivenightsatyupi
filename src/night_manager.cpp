@@ -13,9 +13,7 @@
 
 using namespace godot;
 
-// ===========================================================================
 // Night configuration table
-// ===========================================================================
 
 const NightConfig NightManager::NIGHTS[5] = {
     { 1, 60.0f, 1.00f, "", "" },   // shown via assets/night/night1.png
@@ -25,9 +23,7 @@ const NightConfig NightManager::NIGHTS[5] = {
     { 5, 60.0f, 0.40f, "", "" },   // shown via assets/night/night5.png
 };
 
-// ===========================================================================
 // File-local helper
-// ===========================================================================
 
 static TextureRect* make_fullscreen_rect(const char* path, bool hidden = true) {
     TextureRect* r = memnew(TextureRect);
@@ -40,9 +36,7 @@ static TextureRect* make_fullscreen_rect(const char* path, bool hidden = true) {
     return r;
 }
 
-// ===========================================================================
 // NightManager -- _ready
-// ===========================================================================
 
 void NightManager::_ready() {
     build_end_screens();
@@ -66,15 +60,12 @@ void NightManager::_ready() {
     show_night_overlay(current_night);
     UtilityFunctions::print("NightManager: ready -- showing Night 1 intro");
 
-    // Grab PowerManager for per-night resets (it's a sibling node).
     power_manager = get_parent() ? get_parent()->get_node<PowerManager>("PowerManager") : nullptr;
     if (!power_manager)
         UtilityFunctions::printerr("NightManager: PowerManager not found -- power won't reset between nights");
 }
 
-// ===========================================================================
 // NightManager -- _process
-// ===========================================================================
 
 void NightManager::_process(double delta) {
     if (game_fully_over || !night_started || night_finished) return;
@@ -97,9 +88,7 @@ void NightManager::_process(double delta) {
     }
 }
 
-// ===========================================================================
 // NightManager -- night lifecycle
-// ===========================================================================
 
 void NightManager::on_start_pressed() {
     if (night_started) return;
@@ -115,7 +104,6 @@ void NightManager::start_current_night() {
     night_finished = false;
     night_timer    = 0.0f;
 
-    // Give every animatronic a pointer to the shared clock and this night's duration.
     for (auto* a : animatronics)
         if (a) a->set_shared_timer(&night_timer, cfg().game_duration);
 
@@ -146,10 +134,6 @@ void NightManager::reset_all_animatronics() {
     night_timer    = 0.0f;
 }
 
-// ---------------------------------------------------------------------------
-// Fade helpers
-// ---------------------------------------------------------------------------
-
 void NightManager::fade_to_black(float duration, const Callable& on_done) {
     if (!fade_rect) { on_done.call(); return; }
     fade_rect->set_color(Color(0, 0, 0, 0));
@@ -165,9 +149,7 @@ void NightManager::fade_from_black(float duration) {
     tw->tween_property(fade_rect, "color", Color(0, 0, 0, 0), duration);
 }
 
-// ---------------------------------------------------------------------------
 // Night lifecycle
-// ---------------------------------------------------------------------------
 
 void NightManager::on_night_cleared() {
     if (current_night >= 5) {
@@ -178,7 +160,6 @@ void NightManager::on_night_cleared() {
     if (bg_music && bg_music->is_playing())
         bg_music->stop();
 
-    // Step 1: fade gameplay to black (0.5s), then show YOU WIN and fade back in
     fade_to_black(0.5f, callable_mp(this, &NightManager::on_fade_to_youwin_done));
 }
 
@@ -186,7 +167,6 @@ void NightManager::on_fade_to_youwin_done() {
     if (youwin_image) youwin_image->show();
     fade_from_black(0.5f);
 
-    // Hold YOU WIN for 3 s, then fade out again before advancing
     Timer* t = memnew(Timer);
     t->set_one_shot(true);
     add_child(t);
@@ -195,7 +175,6 @@ void NightManager::on_fade_to_youwin_done() {
 }
 
 void NightManager::on_youwin_hold_done() {
-    // Step 2: fade YOU WIN to black, then swap to next night overlay
     fade_to_black(0.5f, callable_mp(this, &NightManager::advance_to_next_night));
 }
 
@@ -220,7 +199,6 @@ void NightManager::advance_to_next_night() {
     }
 
     show_night_overlay(current_night);
-    // Step 3: fade in from black so the night overlay appears smoothly
     fade_from_black(0.5f);
 }
 void NightManager::on_game_over() {
@@ -258,15 +236,12 @@ void NightManager::on_true_ending() {
     // Show the back button so the player can return to the main menu
     if (back_button) {
         back_button->call_deferred("show");
-        // Re-parent it into the truend_canvas so it sits above the ending image
         if (truend_canvas && back_button->get_parent() == overlay_canvas)
             back_button->reparent(truend_canvas);
     }
 }
 
-// ===========================================================================
 // NightManager -- UI builders
-// ===========================================================================
 
 void NightManager::build_end_screens() {
     Node* root = get_parent();
@@ -333,7 +308,6 @@ void NightManager::build_start_overlay() {
     subtitle_label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);  // ADD
     overlay_canvas->add_child(subtitle_label);
 
-    // Per-night splash images -- loaded from assets/night/night1.png … night5.png
     for (int i = 0; i < 5; i++) {
         night_images[i] = memnew(TextureRect);
         night_images[i]->set_anchors_preset(Control::PRESET_FULL_RECT);
@@ -358,7 +332,6 @@ void NightManager::build_start_overlay() {
         callable_mp(this, &NightManager::on_start_pressed));
     overlay_canvas->add_child(start_button);
 
-    // Back to Main Menu button (visible on overlay and true ending; hidden when night starts)
     back_button = memnew(Button);
     back_button->set_anchors_preset(Control::PRESET_CENTER);
     back_button->set_position(Vector2(-120, 130));
@@ -381,9 +354,7 @@ void NightManager::build_start_overlay() {
     click_sfx->set_bus("SFX");
     add_child(click_sfx);
 
-    // ==========================================
-    // UPDATED: Background Music Setup & Looping
-    // ==========================================
+   
     bg_music = memnew(AudioStreamPlayer);
     Ref<AudioStream> bg_stream = ResourceLoader::get_singleton()->load(
         "res://assets/Gameplay music & suffix/game-bg-music.mp3");
@@ -391,7 +362,6 @@ void NightManager::build_start_overlay() {
     if (!bg_stream.is_null()) {
         bg_music->set_stream(bg_stream);
         
-        // Explicitly cast to AudioStreamMP3 to turn looping on via code
         Ref<AudioStreamMP3> mp3_stream = bg_stream;
         if (mp3_stream.is_valid()) {
             mp3_stream->set_loop(true);
@@ -403,7 +373,6 @@ void NightManager::build_start_overlay() {
     bg_music->set_bus("Music"); // Assigned to Music Bus
     add_child(bg_music);
 
-    // Voice recordings for the night intro overlay (night_1 .. night_4; no night_5)
     for (int i = 0; i < 5; i++) {
         night_voice[i] = memnew(AudioStreamPlayer);
         if (i < 4) { // nights 1-4 only
@@ -423,13 +392,11 @@ void NightManager::build_start_overlay() {
 void NightManager::show_night_overlay(int night) {
     if (!overlay_canvas) return;
 
-    // Show only the matching night image; hide all others
     for (int i = 0; i < 5; i++) {
         if (night_images[i])
             night_images[i]->set_visible(i == night - 1);
     }
 
-    // Text labels are unused (all nights use PNG splashes)
     if (night_label)    night_label->hide();
     if (subtitle_label) subtitle_label->hide();
 
@@ -437,7 +404,6 @@ void NightManager::show_night_overlay(int night) {
         start_button->set_text(String("Start Night ") + String::num_int64(night));
     overlay_canvas->show();
 
-    // Play this night's voice recording (nights 1-4 only)
     int idx = night - 1;
     if (idx >= 0 && idx < 5 && night_voice[idx] && night_voice[idx]->get_stream().is_valid())
         night_voice[idx]->play();
@@ -447,16 +413,14 @@ void NightManager::hide_night_overlay() {
     if (overlay_canvas) overlay_canvas->hide();
 }
 
-// ===========================================================================
+
 // NightManager -- public API
-// ===========================================================================
 
 void NightManager::notify_light_on(bool left_side) {
     for (auto* a : animatronics) if (a) a->notify_light_on(left_side);
 }
 
 void NightManager::notify_power_out() {
-    // for (auto* a : animatronics) if (a) a->notify_power_out();
 }
 
 void NightManager::play_troll() {
@@ -479,9 +443,9 @@ int NightManager::get_active_count() const {
     return n;
 }
 
-// ===========================================================================
+
 // NightManager -- go_to_main_menu
-// ===========================================================================
+
 
 void NightManager::go_to_main_menu() {
     if (click_sfx && click_sfx->is_inside_tree()) click_sfx->play();
@@ -498,9 +462,8 @@ void NightManager::go_to_main_menu() {
     get_tree()->change_scene_to_file("res://scenes/MM Scenes/Main_Menu.tscn");
 }
 
-// ===========================================================================
+
 // NightManager -- _bind_methods
-// ===========================================================================
 
 void NightManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("notify_light_on", "left_side"), &NightManager::notify_light_on);
