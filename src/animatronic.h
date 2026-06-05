@@ -12,10 +12,7 @@
 #include <vector>
 
 using namespace godot;
-
-// ===========================================================================
 // AnimatronicState
-// ===========================================================================
 
 enum class AnimatronicState {
     INACTIVE,
@@ -27,7 +24,6 @@ enum class AnimatronicState {
     YOU_WIN
 };
 
-// ===========================================================================
 // Animatronic — abstract base class
 //
 // Subclasses override:
@@ -40,7 +36,6 @@ enum class AnimatronicState {
 //   can_move()            — return false to block movement
 //   doors_are_useless()   — return true to ignore closed doors (Ryan)
 //   is_repelled_by_light(bool left) — return true to retreat on light
-// ===========================================================================
 
 class Animatronic : public Node {
     GDCLASS(Animatronic, Node);
@@ -78,9 +73,8 @@ public:
     void set_power_out(); // callable by PowerManager
 
 protected:
-    // -----------------------------------------------------------------------
+    
     // Pure-virtual interface — subclasses must implement
-    // -----------------------------------------------------------------------
     virtual void        setup()              = 0;
     virtual const char* get_cam_image_path() = 0;
     virtual const char* get_jumpscare_path() = 0;
@@ -107,8 +101,8 @@ protected:
     float move_interval_max  = 15.0f;
     float door_reaction_time = 5.0f;
     float jumpscare_duration = 2.0f;
-    float troll_interval_min = 120.0f;  // 2 min minimum between troll sounds
-    float troll_interval_max = 300.0f;  // up to 5 min
+    float troll_interval_min = 120.0f;  
+    float troll_interval_max = 300.0f;  
     int   cam_layer          = 10;
     int   jumpscare_layer    = 15;
 
@@ -119,11 +113,9 @@ protected:
     static void _bind_methods();
 
 private:
-    // ---- external refs ----------------------------------------------------
     DoorManager*   door_manager   = nullptr;
     CameraManager* camera_manager = nullptr;
 
-    // ---- visuals ----------------------------------------------------------
     CanvasLayer*       cam_canvas      = nullptr;
     TextureRect*       cam_overlay     = nullptr;
     TextureRect*       static_overlay  = nullptr;
@@ -137,7 +129,6 @@ private:
     TextureRect* gameover_image = nullptr;
     TextureRect* youwin_image   = nullptr;
 
-    // ---- runtime state ----------------------------------------------------
     Timer*           move_timer    = nullptr;
     AnimatronicState state         = AnimatronicState::INACTIVE;
     int              current_cam   = 0;
@@ -152,11 +143,9 @@ private:
     bool  game_over = false;
     bool  game_won  = false;
 
-    // NightManager injects a pointer to its shared clock each night.
     float* shared_game_timer = nullptr;
     float  game_duration     = 60.0f;
 
-    // ---- internal helpers -------------------------------------------------
     void schedule_next_move();
     void move_to_next_cam();
     void attack_door();
@@ -168,7 +157,6 @@ private:
     void trigger_you_win();
     void set_static_overlay(TextureRect* overlay, float duration);
 
-    // NightManager needs to inject the timer and read the name.
     friend class NightManager;
     friend class Librarian;
 
@@ -177,19 +165,17 @@ private:
         game_duration     = duration;
     }
 
-    float spawn_delay_min = 5.0f;   // earliest possible spawn time (seconds into night)
-    float spawn_delay_max = 30.0f;  // latest possible spawn time
+    float spawn_delay_min = 5.0f;   
+    float spawn_delay_max = 30.0f; 
 
     void do_spawn();
 };
 
-// ===========================================================================
 // Concrete animatronics
-// ===========================================================================
 
-// ---------------------------------------------------------------------------
+
 // Dean — Night 1.  Left door only.
-// ---------------------------------------------------------------------------
+
 class Dean : public Animatronic {
     GDCLASS(Dean, Animatronic);
 protected:
@@ -201,9 +187,8 @@ protected:
     static void _bind_methods() {}
 };
 
-// ---------------------------------------------------------------------------
 // Student — Night 2.  Right door only.
-// ---------------------------------------------------------------------------
+
 class Student : public Animatronic {
     GDCLASS(Student, Animatronic);
 protected:
@@ -215,13 +200,12 @@ protected:
     static void _bind_methods() {}
 };
 
-// ---------------------------------------------------------------------------
 // Librarian — Night 2.  Blinds cameras with static on every move.
-// ---------------------------------------------------------------------------
+
 class Librarian : public Animatronic {
     GDCLASS(Librarian, Animatronic);
 public:
-    void _ready() override; // builds the static overlay then calls base
+    void _ready() override; 
 protected:
     void        setup()              override;
     const char* get_cam_image_path() override { return "res://assets/images/librarian.png"; }
@@ -235,9 +219,8 @@ private:
     TextureRect* my_static_overlay     = nullptr;
 };
 
-// ---------------------------------------------------------------------------
 // Janitor — Night 3.  Drains power on every move.
-// ---------------------------------------------------------------------------
+
 class Janitor : public Animatronic {
     GDCLASS(Janitor, Animatronic);
 protected:
@@ -252,9 +235,7 @@ private:
     float power_drain_amount = 7.0f;
 };
 
-// ---------------------------------------------------------------------------
 // Oble — Night 4.  Statue: frozen while the player watches this cam.
-// ---------------------------------------------------------------------------
 class Oble : public Animatronic {
     GDCLASS(Oble, Animatronic);
 protected:
@@ -267,10 +248,10 @@ protected:
     static void _bind_methods() {}
 };
 
-// ---------------------------------------------------------------------------
+
 // RyanAnimatronic — Night 5.
 //   Fast off-camera, stops on-camera, ignores doors, retreats from light.
-// ---------------------------------------------------------------------------
+
 class RyanAnimatronic : public Animatronic {
     GDCLASS(RyanAnimatronic, Animatronic);
 protected:
