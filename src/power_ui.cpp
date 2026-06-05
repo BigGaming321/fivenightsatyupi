@@ -77,7 +77,6 @@ void PowerUI::update_timer() {
     if (!night_manager) return;
 
     // 60 real seconds = 6 in-game hours (12:00 AM -> 6:00 AM = 360 minutes).
-    // Snap to 10-minute increments (36 steps; each step ~1.667 real seconds).
     float elapsed = night_manager->get_night_timer();
     float clamped = CLAMP(elapsed, 0.0f, 60.0f);
 
