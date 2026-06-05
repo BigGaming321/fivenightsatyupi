@@ -31,8 +31,6 @@ void PowerManager::_ready() {
     light_overlay->set_anchors_preset(Control::PRESET_FULL_RECT);
     light_overlay->set_color(Color(0.0f, 0.0f, 0.0f, 0.45f));
     canvas->add_child(light_overlay);
-
-    // Start hidden — overlay only appears when lights are toggled off
     apply_light_state(); 
 }
 
