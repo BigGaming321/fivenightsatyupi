@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <godot_cpp/variant/rect2.hpp>
+#include <godot_cpp/classes/audio_stream_player.hpp>
 
 struct CameraZone {
     godot::Rect2 area;
@@ -35,6 +36,8 @@ private:
     void load_camera(int index);
 
 public:
+    AudioStreamPlayer* cam_switch_sfx = nullptr;
+    AudioStreamPlayer* cam_static_sfx = nullptr;
     void _ready()   override;
     void _unhandled_input(const Ref<InputEvent>& event) override;
 
@@ -44,6 +47,7 @@ public:
     void next_camera();
     void prev_camera();
     void switch_camera(int index);
+    void play_static_sound();
 
     bool is_open()          const { return cam_open; }
     void set_power_out(bool value) { power_out = value; }  

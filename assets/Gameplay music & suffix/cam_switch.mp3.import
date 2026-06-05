@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://e4talsthj1u6"
+path="res://.godot/imported/cam_switch.mp3-3fd9ed1f89153d5667acfdacb96e73f9.mp3str"
+
+[deps]
+
+source_file="res://assets/Gameplay music & suffix/cam_switch.mp3"
+dest_files=["res://.godot/imported/cam_switch.mp3-3fd9ed1f89153d5667acfdacb96e73f9.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

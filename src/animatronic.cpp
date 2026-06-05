@@ -159,9 +159,10 @@ void Animatronic::_process(double delta) {
         static_timer -= dt;
         if (static_overlay) {
             if (static_timer > 0.0f && camera_manager && camera_manager->is_open()
-                && camera_manager->get_camera_index() == current_cam)
+                && camera_manager->get_camera_index() == current_cam) {
                 static_overlay->show();
-            else
+                camera_manager->play_static_sound();
+            } else
                 static_overlay->hide();
         }
     }
@@ -492,6 +493,7 @@ void Librarian::on_move() {
 
     if (is_watched_on_cam()) {
         my_static_overlay->show();
+        if (camera_manager) camera_manager->play_static_sound();
         UtilityFunctions::print("Librarian: static shown -- player was watching CAM ", current_cam);
     } else {
         UtilityFunctions::print("Librarian: static armed -- player not on CAM ", current_cam, " yet");

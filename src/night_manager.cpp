@@ -1,11 +1,15 @@
 #include "night_manager.h"
 #include "power_manager.h"
+#include "camera_manager.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/audio_stream.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/color_rect.hpp>
+#include <godot_cpp/classes/tween.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/audio_stream_mp3.hpp>
+#include <godot_cpp/classes/scene_tree_timer.hpp>
 
 using namespace godot;
 
@@ -14,21 +18,11 @@ using namespace godot;
 // ===========================================================================
 
 const NightConfig NightManager::NIGHTS[5] = {
-    { 1, 60.0f, 1.00f,
-      "Night 1 -- The First Shift",
-      "Only Dean is active. Learn his pattern." },
-    { 2, 60.0f, 0.85f,
-      "Night 2 -- Double Trouble",
-      "Student and Librarian join the hunt. Watch both doors." },
-    { 3, 60.0f, 0.70f,
-      "Night 3 -- Lights Out",
-      "The Janitor drains your power. Conserve electricity." },
-    { 4, 60.0f, 0.55f,
-      "Night 4 -- The Statue",
-      "Oble never moves while you watch -- but you can't watch forever." },
-    { 5, 60.0f, 0.40f,
-      "Night 5 -- Endgame",
-      "Ryan ignores doors and retreats from light. This is the final night." },
+    { 1, 60.0f, 1.00f, "", "" },   // shown via assets/night/night1.png
+    { 2, 60.0f, 0.85f, "", "" },   // shown via assets/night/night2.png
+    { 3, 60.0f, 0.70f, "", "" },   // shown via assets/night/night3.png
+    { 4, 60.0f, 0.55f, "", "" },   // shown via assets/night/night4.png
+    { 5, 60.0f, 0.40f, "", "" },   // shown via assets/night/night5.png
 };
 
 // ===========================================================================
@@ -110,6 +104,7 @@ void NightManager::_process(double delta) {
 void NightManager::on_start_pressed() {
     if (night_started) return;
     if (click_sfx && click_sfx->is_inside_tree()) click_sfx->play();
+
     if (back_button) back_button->hide();
     hide_night_overlay();
     start_current_night();
@@ -151,28 +146,57 @@ void NightManager::reset_all_animatronics() {
     night_timer    = 0.0f;
 }
 
+// ---------------------------------------------------------------------------
+// Fade helpers
+// ---------------------------------------------------------------------------
+
+void NightManager::fade_to_black(float duration, const Callable& on_done) {
+    if (!fade_rect) { on_done.call(); return; }
+    fade_rect->set_color(Color(0, 0, 0, 0));
+    Ref<Tween> tw = get_tree()->create_tween();
+    tw->tween_property(fade_rect, "color", Color(0, 0, 0, 1), duration);
+    tw->tween_callback(on_done);
+}
+
+void NightManager::fade_from_black(float duration) {
+    if (!fade_rect) return;
+    fade_rect->set_color(Color(0, 0, 0, 1));
+    Ref<Tween> tw = get_tree()->create_tween();
+    tw->tween_property(fade_rect, "color", Color(0, 0, 0, 0), duration);
+}
+
+// ---------------------------------------------------------------------------
+// Night lifecycle
+// ---------------------------------------------------------------------------
+
 void NightManager::on_night_cleared() {
     if (current_night >= 5) {
         on_true_ending();
         return;
     }
 
-    if (bg_music && bg_music->is_playing()) {
+    if (bg_music && bg_music->is_playing())
         bg_music->stop();
-    }
 
-    if (current_night >= 5) {
-        on_true_ending();
-        return;
-    }
+    // Step 1: fade gameplay to black (0.5s), then show YOU WIN and fade back in
+    fade_to_black(0.5f, callable_mp(this, &NightManager::on_fade_to_youwin_done));
+}
 
-    if (youwin_image) youwin_image->call_deferred("show");
+void NightManager::on_fade_to_youwin_done() {
+    if (youwin_image) youwin_image->show();
+    fade_from_black(0.5f);
 
+    // Hold YOU WIN for 3 s, then fade out again before advancing
     Timer* t = memnew(Timer);
     t->set_one_shot(true);
     add_child(t);
-    t->connect("timeout", callable_mp(this, &NightManager::advance_to_next_night));
-    t->start(3.0f);    
+    t->connect("timeout", callable_mp(this, &NightManager::on_youwin_hold_done));
+    t->start(3.0f);
+}
+
+void NightManager::on_youwin_hold_done() {
+    // Step 2: fade YOU WIN to black, then swap to next night overlay
+    fade_to_black(0.5f, callable_mp(this, &NightManager::advance_to_next_night));
 }
 
 void NightManager::advance_to_next_night() {
@@ -184,7 +208,6 @@ void NightManager::advance_to_next_night() {
     reset_all_animatronics();
     if (power_manager) power_manager->reset_power();
 
-    // ADD THIS:
     Node* root = get_parent();
     if (root) {
         CameraManager* cam = root->get_node<CameraManager>("CameraManager");
@@ -195,17 +218,36 @@ void NightManager::advance_to_next_night() {
             UtilityFunctions::print("NightManager: doors reset to open");
         }
     }
+
     show_night_overlay(current_night);
+    // Step 3: fade in from black so the night overlay appears smoothly
+    fade_from_black(0.5f);
 }
 void NightManager::on_game_over() {
-    
+
     if (bg_music && bg_music->is_playing()) {
         bg_music->stop();
     }
 
     UtilityFunctions::print("NightManager: GAME OVER on Night ", current_night);
-    for (auto* a : animatronics) if (a) a->deactivate();
-    if (gameover_image) gameover_image->call_deferred("show");
+
+    for (auto* a : animatronics)
+        if (a) a->deactivate();
+
+    if (gameover_image) {
+        gameover_image->call_deferred("show");
+    }
+
+    // wait 10 seconds then go back to menu
+    Ref<SceneTreeTimer> timer = get_tree()->create_timer(10.0);
+
+    timer->connect(
+        "timeout",
+        Callable(this, "_return_to_menu")
+    );
+}
+void NightManager::_return_to_menu() {
+    get_tree()->change_scene_to_file("res://scenes/MM Scenes/Main_Menu.tscn");
 }
 
 void NightManager::on_true_ending() {
@@ -250,6 +292,16 @@ void NightManager::build_end_screens() {
     truend_image = make_fullscreen_rect("res://assets/images/true_ending.png");
     truend_canvas->add_child(truend_image);
     root->call_deferred("add_child", truend_canvas);
+
+    // Fade-to-black overlay -- sits above everything (layer 70)
+    fade_canvas = memnew(CanvasLayer);
+    fade_canvas->set_layer(70);
+    fade_rect = memnew(ColorRect);
+    fade_rect->set_anchors_preset(Control::PRESET_FULL_RECT);
+    fade_rect->set_color(Color(0, 0, 0, 0));   // start fully transparent
+    fade_rect->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+    fade_canvas->add_child(fade_rect);
+    root->call_deferred("add_child", fade_canvas);
 }
 
 void NightManager::build_start_overlay() {
@@ -280,6 +332,20 @@ void NightManager::build_start_overlay() {
     subtitle_label->add_theme_font_size_override("font_size", 22);
     subtitle_label->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);  // ADD
     overlay_canvas->add_child(subtitle_label);
+
+    // Per-night splash images -- loaded from assets/night/night1.png … night5.png
+    for (int i = 0; i < 5; i++) {
+        night_images[i] = memnew(TextureRect);
+        night_images[i]->set_anchors_preset(Control::PRESET_FULL_RECT);
+        night_images[i]->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+        night_images[i]->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+        String path = String("res://assets/night/night") + String::num_int64(i + 1) + ".png";
+        Ref<Texture2D> tex = ResourceLoader::get_singleton()->load(path);
+        if (!tex.is_null()) night_images[i]->set_texture(tex);
+        else UtilityFunctions::printerr("NightManager: missing texture: ", path);
+        night_images[i]->hide();
+        overlay_canvas->add_child(night_images[i]);
+    }
 
     // Start button
     start_button = memnew(Button);
@@ -336,16 +402,45 @@ void NightManager::build_start_overlay() {
     }
     bg_music->set_bus("Music"); // Assigned to Music Bus
     add_child(bg_music);
+
+    // Voice recordings for the night intro overlay (night_1 .. night_4; no night_5)
+    for (int i = 0; i < 5; i++) {
+        night_voice[i] = memnew(AudioStreamPlayer);
+        if (i < 4) { // nights 1-4 only
+            String path = String("res://assets/voicerecordings/night_")
+                          + String::num_int64(i + 1) + ".mp3";
+            Ref<AudioStream> vo = ResourceLoader::get_singleton()->load(path);
+            if (!vo.is_null())
+                night_voice[i]->set_stream(vo);
+            else
+                UtilityFunctions::printerr("NightManager: missing voice recording: ", path);
+        }
+        night_voice[i]->set_bus("SFX");
+        add_child(night_voice[i]);
+    }
 }
 
 void NightManager::show_night_overlay(int night) {
     if (!overlay_canvas) return;
-    int idx = CLAMP(night - 1, 0, 4);
-    if (night_label)    night_label->set_text(NIGHTS[idx].night_title);
-    if (subtitle_label) subtitle_label->set_text(NIGHTS[idx].subtitle);
-    if (start_button)   start_button->set_text(
-        String("Start Night ") + String::num_int64(night));
+
+    // Show only the matching night image; hide all others
+    for (int i = 0; i < 5; i++) {
+        if (night_images[i])
+            night_images[i]->set_visible(i == night - 1);
+    }
+
+    // Text labels are unused (all nights use PNG splashes)
+    if (night_label)    night_label->hide();
+    if (subtitle_label) subtitle_label->hide();
+
+    if (start_button)
+        start_button->set_text(String("Start Night ") + String::num_int64(night));
     overlay_canvas->show();
+
+    // Play this night's voice recording (nights 1-4 only)
+    int idx = night - 1;
+    if (idx >= 0 && idx < 5 && night_voice[idx] && night_voice[idx]->get_stream().is_valid())
+        night_voice[idx]->play();
 }
 
 void NightManager::hide_night_overlay() {
@@ -417,5 +512,9 @@ void NightManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_current_night"),             &NightManager::get_current_night);
     ClassDB::bind_method(D_METHOD("get_night_timer"),               &NightManager::get_night_timer);
     ClassDB::bind_method(D_METHOD("on_start_pressed"),              &NightManager::on_start_pressed);
+    ClassDB::bind_method(D_METHOD("on_fade_to_youwin_done"),        &NightManager::on_fade_to_youwin_done);
+    ClassDB::bind_method(D_METHOD("on_youwin_hold_done"),           &NightManager::on_youwin_hold_done);
+    ClassDB::bind_method(D_METHOD("advance_to_next_night"),         &NightManager::advance_to_next_night);
     ClassDB::bind_method(D_METHOD("go_to_main_menu"),               &NightManager::go_to_main_menu);
+    ClassDB::bind_method(D_METHOD("_return_to_menu"), &NightManager::_return_to_menu);
 }

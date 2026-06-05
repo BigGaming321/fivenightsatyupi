@@ -3,10 +3,13 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/texture_rect.hpp>
+#include <godot_cpp/classes/color_rect.hpp>
 #include <godot_cpp/classes/canvas_layer.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/timer.hpp>
+#include <godot_cpp/classes/tween.hpp>
+#include <godot_cpp/classes/property_tweener.hpp>
 #include <godot_cpp/classes/audio_stream_player.hpp>
 #include "animatronic.h"
 #include <vector>
@@ -103,9 +106,18 @@ private:
     CanvasLayer*       overlay_canvas = nullptr;
     Label*             night_label    = nullptr;
     Label*             subtitle_label = nullptr;
+    AudioStreamPlayer* night_voice[5] = {};
+    TextureRect*       night_images[5] = {};  // PNG splash per night
     Button*            start_button   = nullptr;
     Button*            back_button    = nullptr;
     AudioStreamPlayer* click_sfx      = nullptr;
+
+    // ---- Fade overlay ------------------------------------------------------
+    CanvasLayer* fade_canvas  = nullptr;
+    ColorRect*   fade_rect    = nullptr;
+
+    void fade_to_black(float duration, const Callable& on_done);
+    void fade_from_black(float duration);
 
     // ---- Helpers -----------------------------------------------------------
     const NightConfig& cfg() const { return NIGHTS[current_night - 1]; }
@@ -119,9 +131,12 @@ private:
     void activate_night_animatronics();
     void reset_all_animatronics();
 
-    void on_night_cleared();     // called when night_timer >= duration
-    void advance_to_next_night();// connected to a one-shot Timer after win
+    void on_night_cleared();          // called when night_timer >= duration
+    void on_fade_to_youwin_done();    // fade-in callback: show YOU WIN
+    void on_youwin_hold_done();       // hold timer callback: fade out YOU WIN
+    void advance_to_next_night();     // final callback: swap to next night overlay
     void on_game_over();
+    void _return_to_menu();
     void on_true_ending();
 };
 

@@ -10,6 +10,7 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree_timer.hpp>
 #include <godot_cpp/variant/vector2i.hpp>
+#include <godot_cpp/classes/animation_player.hpp>
 
 using namespace godot;
 
@@ -28,6 +29,7 @@ void MainMenu::_bind_methods() {
     ClassDB::bind_method(D_METHOD("on_fullscreen_toggled", "toggled_on"), &MainMenu::on_fullscreen_toggled);
     ClassDB::bind_method(D_METHOD("on_master_volume_changed", "value"), &MainMenu::on_master_volume_changed);
     ClassDB::bind_method(D_METHOD("on_sfx_volume_changed", "value"), &MainMenu::on_sfx_volume_changed);
+    ClassDB::bind_method(D_METHOD("_on_fade_finished", "anim_name"), &MainMenu::_on_fade_finished);
 }
 
 void MainMenu::_ready() {
@@ -95,11 +97,30 @@ void MainMenu::on_toggle_sound(bool toggled_on) {
 }
 
 // NAVIGATION
+void MainMenu::_on_fade_finished(StringName anim_name) {
+    if (String(anim_name) == "fade_out") {
+        get_tree()->change_scene_to_file("res://scenes/main.tscn");
+    }
+}
 
 void MainMenu::on_start_pressed() {
     play_click();
-    UtilityFunctions::print("Starting Game Scene...");
-    get_tree()->change_scene_to_file("res://scenes/main.tscn");
+
+    AnimationPlayer *anim =
+        get_node<AnimationPlayer>("CanvasLayer/AnimationPlayer");
+
+    if (!anim) {
+        UtilityFunctions::print("AnimationPlayer missing!");
+        return;
+    }
+
+    anim->play("fade_out");
+
+    anim->connect(
+        "animation_finished",
+        Callable(this, "_on_fade_finished"),
+        CONNECT_ONE_SHOT
+    );
 }
 
 void MainMenu::on_settings_pressed() {

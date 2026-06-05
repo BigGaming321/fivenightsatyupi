@@ -2,6 +2,8 @@
 #include "door_manager.h"
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/classes/audio_stream.hpp>
+#include <godot_cpp/classes/audio_stream_player.hpp>
 #include <godot_cpp/classes/input_event_mouse_button.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/viewport.hpp>
@@ -65,6 +67,27 @@ void CameraManager::_ready() {
     camera_feed->hide();
     load_camera(0);
 
+    // Camera switch sound
+    cam_switch_sfx = memnew(AudioStreamPlayer);
+    {
+        Ref<AudioStream> s = ResourceLoader::get_singleton()->load(
+            "res://assets/Gameplay music & suffix/cam_switch.mp3");
+        if (!s.is_null()) cam_switch_sfx->set_stream(s);
+        else UtilityFunctions::printerr("CameraManager: cam_switch.mp3 not found!");
+    }
+    cam_switch_sfx->set_bus("Master");
+    add_child(cam_switch_sfx);
+
+    // Static sound (called externally by Librarian / Animatronic)
+    cam_static_sfx = memnew(AudioStreamPlayer);
+    {
+        Ref<AudioStream> s = ResourceLoader::get_singleton()->load(
+            "res://assets/Gameplay music & suffix/cam_static.mp3");
+        if (!s.is_null()) cam_static_sfx->set_stream(s);
+        else UtilityFunctions::printerr("CameraManager: cam_static.mp3 not found!");
+    }
+    cam_static_sfx->set_bus("SFX");
+    add_child(cam_static_sfx);
 }
 
 void CameraManager::_unhandled_input(const Ref<InputEvent>& event) {
@@ -99,6 +122,10 @@ void CameraManager::switch_camera(int index) {
     }
     if (cam_images[index]) cam_images[index]->set_visible(true);
     load_camera(index);
+
+    if (cam_switch_sfx && cam_switch_sfx->get_stream().is_valid())
+        cam_switch_sfx->play();
+
     UtilityFunctions::print("Switched to camera: ", index);
 }
 
@@ -142,6 +169,11 @@ void CameraManager::prev_camera() {
     load_camera(current_cam - 1);
 }
 
+void CameraManager::play_static_sound() {
+    if (cam_static_sfx && cam_static_sfx->get_stream().is_valid() && !cam_static_sfx->is_playing())
+        cam_static_sfx->play();
+}
+
 void CameraManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("open_cameras"),    &CameraManager::open_cameras);
     ClassDB::bind_method(D_METHOD("close_cameras"),   &CameraManager::close_cameras);
@@ -152,4 +184,5 @@ void CameraManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("switch_camera", "index"), &CameraManager::switch_camera);
     ClassDB::bind_method(D_METHOD("_input", "event"), &CameraManager::_input);
     ClassDB::bind_method(D_METHOD("reset_for_new_night"), &CameraManager::reset_for_new_night);
+    ClassDB::bind_method(D_METHOD("play_static_sound"),   &CameraManager::play_static_sound);
 }

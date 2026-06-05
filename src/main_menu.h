@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/texture2d.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/classes/animation_player.hpp>
 #include <vector>
 
 using namespace godot;
@@ -38,6 +39,7 @@ public:
     void on_exit_pressed();
     void on_back_pressed();
 
+    void _on_fade_finished(StringName anim_name);
     void on_how_to_play_pressed();
     void on_prev_pressed();
     void on_next_pressed();
