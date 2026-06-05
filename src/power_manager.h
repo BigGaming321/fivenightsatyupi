@@ -25,7 +25,7 @@ private:
     float door_drain   = 1.5f;   // % per second per closed door
 
     bool power_out = false;
-    bool lights_on = false;  // off by default
+    bool lights_on = false;  
 
     void on_power_out();
     void apply_light_state();
@@ -36,7 +36,6 @@ public:
 
     void toggle_lights();
 
-    // Called by NightManager at the start of each new night.
     void reset_power();
 
     float get_power()     const { return power;     }
