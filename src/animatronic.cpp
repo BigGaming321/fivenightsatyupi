@@ -6,9 +6,7 @@
 
 using namespace godot;
 
-// ===========================================================================
-// File-local helpers
-// ===========================================================================
+// File-local helpers 
 
 static TextureRect* make_fullscreen_rect(const char* path, bool hidden = true) {
     TextureRect* r = memnew(TextureRect);
@@ -37,19 +35,16 @@ static AudioStreamPlayer* make_audio(Node* parent, const char* path, const char*
     return p;
 }
 
-// ===========================================================================
 // Animatronic (base) -- _ready
-// ===========================================================================
 
 void Animatronic::_ready() {
-    // Scene hierarchy: Animatronic -> NightManager -> scene root
     Node* root = get_parent() ? get_parent()->get_parent() : nullptr;
     if (!root) { UtilityFunctions::printerr("Animatronic: cannot find scene root!"); return; }
 
     rng.instantiate();
     rng->randomize();
 
-    setup(); // subclass fills all_cams, attack_cams and tuning values
+    setup(); 
 
     door_manager   = root->get_node<DoorManager>("DoorManager");
     camera_manager = root->get_node<CameraManager>("CameraManager");
@@ -93,14 +88,10 @@ void Animatronic::_ready() {
     UtilityFunctions::print(get_name_str(), ": ready (first active Night ", get_active_night(), ")");
 }
 
-// ===========================================================================
 // Animatronic (base) -- activate / deactivate / reset
-// ===========================================================================
 
 void Animatronic::activate() {
     if (state != AnimatronicState::INACTIVE) return;
-
-    // Schedule a random spawn time during the night instead of spawning instantly
     float spawn_delay = rng->randf_range(spawn_delay_min, spawn_delay_max);
     UtilityFunctions::print(get_name_str(), ": will spawn in ", spawn_delay, "s");
 
@@ -142,9 +133,7 @@ void Animatronic::reset_for_next_night() {
     UtilityFunctions::print(get_name_str(), ": reset for next night");
 }
 
-// ===========================================================================
 // Animatronic (base) -- _process
-// ===========================================================================
 
 void Animatronic::_process(double delta) {
     if (game_over || game_won)               return;
@@ -183,7 +172,6 @@ void Animatronic::_process(double delta) {
             if (blocked) {
                 waiting_at_door = false;
 
-                // 50/50: move to next cam OR despawn and re-schedule later
                 bool despawn = rng->randf() < 0.5f;
                 if (despawn) {
                     UtilityFunctions::print(get_name_str(), ": door blocked -- despawning");
@@ -234,9 +222,7 @@ void Animatronic::_process(double delta) {
     }
 }
 
-// ===========================================================================
 // Animatronic (base) -- camera overlay
-// ===========================================================================
 
 bool Animatronic::is_watched_on_cam() const {
     return camera_manager &&
@@ -253,9 +239,7 @@ void Animatronic::hide_cam_overlay() {
     if (cam_overlay) cam_overlay->hide();
 }
 
-// ===========================================================================
 // Animatronic (base) -- movement
-// ===========================================================================
 
 void Animatronic::schedule_next_move() {
     float t = rng->randf_range(move_interval_min, move_interval_max);
@@ -301,9 +285,7 @@ void Animatronic::attack_door() {
     waiting_at_door = true;
 }
 
-// ===========================================================================
 // Animatronic (base) -- external events
-// ===========================================================================
 
 void Animatronic::notify_power_out() {
     power_out = true;
@@ -342,9 +324,7 @@ void Animatronic::notify_light_on(bool left_side) {
     schedule_next_move();
 }
 
-// ===========================================================================
 // Animatronic (base) -- jumpscare / end-state
-// ===========================================================================
 
 void Animatronic::trigger_jumpscare() {
     state           = AnimatronicState::JUMPSCARING;
@@ -377,25 +357,19 @@ void Animatronic::trigger_you_win() {
     UtilityFunctions::print(get_name_str(), ": night survived!");
 }
 
-// ===========================================================================
 // Animatronic (base) -- helpers for subclasses
-// ===========================================================================
 
 void Animatronic::emit_power_drained(float amount) {
     emit_signal("power_drained", amount);
 }
 
 void Animatronic::set_static_overlay(TextureRect* overlay, float duration) {
-    // Register the pointer — never show here. Visibility is managed entirely
-    // by _process (camera-open check) and on_move (explicit show).
     if (overlay) static_overlay = overlay;
     if (duration > 0.0f) static_timer = duration;
     // Do NOT call show() here — caller decides when to show.
 }
 
-// ===========================================================================
 // Animatronic (base) -- _bind_methods
-// ===========================================================================
 
 void Animatronic::_bind_methods() {
     ClassDB::bind_method(D_METHOD("activate"),                      &Animatronic::activate);
@@ -417,9 +391,7 @@ void Animatronic::_bind_methods() {
         PropertyInfo(Variant::FLOAT, "amount")));
 }
 
-// ===========================================================================
 // Dean -- Night 1
-// ===========================================================================
 
 void Dean::setup() {
     all_cams           = {0, 1, 2, 3, 4};
@@ -431,9 +403,7 @@ void Dean::setup() {
     jumpscare_layer    = 15;
 }
 
-// ===========================================================================
 // Student -- Night 2
-// ===========================================================================
 
 void Student::setup() {
     all_cams           = {1, 2, 3, 4};
@@ -445,9 +415,7 @@ void Student::setup() {
     jumpscare_layer    = 16;
 }
 
-// ===========================================================================
 // Librarian -- Night 2
-// ===========================================================================
 
 void Librarian::_ready() {
     Animatronic::_ready();
@@ -465,10 +433,10 @@ void Librarian::_ready() {
     }
     s->hide();
     my_static_overlay = s;
-    set_static_overlay(s, 0.0f); // register pointer only; duration set on first move
+    set_static_overlay(s, 0.0f); 
 
     CanvasLayer* sl = memnew(CanvasLayer);
-    sl->set_layer(cam_layer + 1); // just above camera overlay
+    sl->set_layer(cam_layer + 1); 
     sl->add_child(s);
     root->call_deferred("add_child", sl);
 }
@@ -500,9 +468,7 @@ void Librarian::on_move() {
     }
 }
 
-// ===========================================================================
 // Janitor -- Night 3
-// ===========================================================================
 
 void Janitor::setup() {
     all_cams           = {0, 1, 2, 3, 4};
@@ -519,9 +485,7 @@ void Janitor::on_move() {
     UtilityFunctions::print("Janitor: drained ", power_drain_amount, " power");
 }
 
-// ===========================================================================
 // Oble -- Night 4
-// ===========================================================================
 
 void Oble::setup() {
     all_cams           = {0, 1, 2, 3, 4};
@@ -537,9 +501,7 @@ bool Oble::can_move() {
     return !is_watched_on_cam();
 }
 
-// ===========================================================================
 // RyanAnimatronic -- Night 5
-// ===========================================================================
 
 void RyanAnimatronic::setup() {
     all_cams           = {0, 1, 2, 3, 4};
